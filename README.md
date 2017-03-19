@@ -13,4 +13,4 @@ Or read this: http://deeplearning.net/software/theano/install.html
 
 If using BLAS for multithreading:
 1) sudo apt-get install libatlas-base-dev
-2) OMP_NUM_THREADS=6 python imageTransfer.py
+2) OMP_NUM_THREADS=6 python run.py
