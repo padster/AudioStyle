@@ -9,6 +9,8 @@ pip install scipy
 pip install --upgrade https://github.com/Theano/Theano/archive/master.zip
 pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
 
+pip install audioread
+
 Or read this: http://deeplearning.net/software/theano/install.html
 
 If using BLAS for multithreading:

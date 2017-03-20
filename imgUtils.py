@@ -13,7 +13,7 @@ def firstAxisLast(img):
 def forceRGB(img):
     if len(img.shape) == 2:
         img = img[:, :, np.newaxis]
-        img = np.repeat(im, 3, axis=2)
+        img = np.repeat(img, 3, axis=2)
     assert len(img.shape) == 3
     return img
 

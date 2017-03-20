@@ -5,7 +5,7 @@ vgg19_normalized.pkl
 
 # Large binary files, don't commit:
 data/
-
+*.wav
 
 
 # Byte-compiled / optimized / DLL files

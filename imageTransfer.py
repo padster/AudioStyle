@@ -16,8 +16,10 @@ import vggnet
 def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, varCost=0.1e-7):
     _, _, h, w = photo.shape
     _, _, h2, w2 = style.shape
+    print photo.shape
+    print style.shape
     assert h == h2 and w == w2
-    
+
     net = vggnet.buildVgg(w, h)
 
     # Layers for loss calculation:
@@ -77,7 +79,7 @@ def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, var
     # Optimize, saving the result periodically
     print 'Optimizing image to reduce loss....'
     for i in range(iterations - 1):
-        print(i)
+        print(i+1)
         scipy.optimize.fmin_l_bfgs_b(eval_loss, xAt.flatten(), fprime=eval_grad, maxfun=40, iprint=0)
         xAt = generated_image.get_value().astype('float64')
         xs.append(xAt)
