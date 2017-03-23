@@ -5,6 +5,7 @@ import skimage.transform
 import audioUtils
 import imageTransfer
 import imgUtils
+import mfcc
 
 IMAGE_SZ = 64
 
@@ -12,7 +13,10 @@ IMAGE_SZ = 64
 # Subplots helper: hide axes, minimize space between, maximize window
 def cleanSubplots(r, c, pad=0.05):
     f, ax = plt.subplots(r, c)
-    if r == 1 or c == 1:
+    if r == 1 and c == 1:
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+    elif r == 1 or c == 1:
         for a in ax:
             a.get_xaxis().set_visible(False)
             a.get_yaxis().set_visible(False)
@@ -103,6 +107,48 @@ def runAudioTransferTest():
     plt.show()
 
 
+# NOTE: Doesn't work well even without style transfer yet...need to debug.
+def mfccSpectrogram():
+    print "Loading files..."
+    r1, s1 = audioUtils.fileToSamples('data/marsyas/asWav/rock17.wav')
+    r2, s2 = audioUtils.fileToSamples('data/marsyas/asWav/reggae07.wav')
+    s1 = audioUtils.preprocess(s1, r1)
+    s2 = audioUtils.preprocess(s2, r2)
+    assert r1 == r2 and len(s1) == len(s2) # should be 661794 = 2 * 3 * 7^2 * 2251 for marsyas
+
+    print "Generating spectrograms..."
+    spec1 = audioUtils.toSpectrogram(s1)
+    spec2 = audioUtils.toSpectrogram(s2)
+    ax = cleanSubplots(2, 1)
+    ax[0].matshow(spec1.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    ax[1].matshow(spec2.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    plt.show()
+
+    print "Generating mel spectrograms..."
+    melSpec1 = audioUtils.toMelSpectrogram(spec1)
+    melSpec2 = audioUtils.toMelSpectrogram(spec2)
+    ax = cleanSubplots(2, 1)
+    ax[0].matshow(melSpec1, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    ax[1].matshow(melSpec2, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    plt.show()
+
+    print "Transferring style from style mel onto content mel..."
+    # TODO: transfer style
+
+    print "Inverting mel result back to spectrogram..."
+    specInv = audioUtils.fromMelSpectrogram(melSpec1)
+    print "Inverting spectrogram back to samples..."
+    sInv = audioUtils.fromSpectrogram(specInv)
+    ax = cleanSubplots(2, 1)
+    ax[0].plot(s1)
+    ax[1].plot(sInv)
+    plt.show()
+
+    print "Saving..."
+    audioUtils.samplesToFile('melOut.wav', r1, sInv)
+
+
 if __name__ == '__main__':
     # runImageTransferTest()
-    runAudioTransferTest()
+    # runAudioTransferTest()
+    mfccSpectrogram()
