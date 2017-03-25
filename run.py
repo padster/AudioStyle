@@ -159,8 +159,8 @@ def audioTransferNicerSpectrograms():
 # NOTE: Doesn't work well even without style transfer yet...need to debug.
 def mfccSpectrogram():
     print "Loading files..."
-    r1, s1 = audioUtils.fileToSamples('data/marsyas/asWav/rock17.wav')
-    r2, s2 = audioUtils.fileToSamples('data/marsyas/asWav/reggae07.wav')
+    r1, s1 = audioUtils.loadFirst10s('data/marsyas/asWav/rock17.wav')
+    r2, s2 = audioUtils.loadFirst10s('data/marsyas/asWav/reggae07.wav')
     s1 = audioUtils.preprocess(s1, r1)
     s2 = audioUtils.preprocess(s2, r2)
     assert r1 == r2 and len(s1) == len(s2) # should be 661794 = 2 * 3 * 7^2 * 2251 for marsyas
@@ -184,11 +184,31 @@ def mfccSpectrogram():
     ax[1].matshow(melSpec2, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
     plt.show()
 
-    print "Transferring style from style mel onto content mel..."
-    # TODO: transfer style
+    print "Preprocessing spectrogram images"
+    mx1, mn1 = np.max(melSpec1), np.min(melSpec1)
+    mx2, mn2 = np.max(melSpec2), np.min(melSpec2)
+    fft1Img = ((melSpec1 - mn1) / (mx1 - mn1) * 256).astype('uint8')
+    fft2Img = ((melSpec2 - mn2) / (mx2 - mn2) * 256).astype('uint8')
+    # Each will be 96 x 854, no need to downsample
+    _, fft1ImgProc = imgUtils.preprocess(fft1Img)
+    _, fft2ImgProc = imgUtils.preprocess(fft2Img)
+    print fft2ImgProc.shape
+
+    print "Transferring style from one spectrogram onto the other..."
+    partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=15)
+    # partials = [fft1ImgProc]
+    melSpecOut = imgUtils.deprocess(partials[-1])
+    melSpecOut = melSpecOut[:, :, 0] # hack - can only use one channel
+    melSpecOut = mn1 + (mx1 - mn1) * melSpecOut / 256.0
+
+    ax = cleanSubplots(3, 1)
+    ax[0].matshow(melSpec1, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    ax[1].matshow(melSpec2, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    ax[2].matshow(melSpecOut, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    plt.show()
 
     print "Inverting mel result back to spectrogram..."
-    specInv = audioUtils.fromMelSpectrogram(melSpec1)
+    specInv = audioUtils.fromMelSpectrogram(melSpecOut)
 
     print "Inverting spectrogram back to samples..."
     sInv = audioUtils.fromSpectrogram(specInv)
@@ -200,5 +220,5 @@ def mfccSpectrogram():
 if __name__ == '__main__':
     # runImageTransferTest()
     # runAudioTransferTest()
-    audioTransferNicerSpectrograms()
-    # mfccSpectrogram()
+    # audioTransferNicerSpectrograms()
+    mfccSpectrogram()

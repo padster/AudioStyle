@@ -9,12 +9,12 @@ import mfcc
 FFT_SIZE = 2048 # window size for the FFT
 STEP_SIZE = FFT_SIZE/16 # distance to slide along the window (in time)
 SPEC_THRESH = 4 # threshold for spectrograms (lower filters out more noise)
-LOW_CUT = 500 # Hz # Low cut for our butter bandpass filter
+LOW_CUT = 125 # Hz # Low cut for our butter bandpass filter
 HIGH_CUT = 10000 # Hz # High cut for our butter bandpass filter
 LOG_SPECTROGRAM = True
-N_MEL_FREQ = 72 # number of mel frequency channels
-SHORTEN_FACTOR = 4 # how much should we compress the x-axis (time)
-START_FREQ = 150 # Hz # What frequency to start sampling our melS from
+N_MEL_FREQ = 96 # number of mel frequency channels
+SHORTEN_FACTOR = 2 # how much should we compress the x-axis (time)
+START_FREQ = 125 # Hz # What frequency to start sampling our melS from
 END_FREQ = 8000 # Hz # What frequency to stop sampling our melS from
 
 MEL_FILTER, MEL_FILTER_INV = mfcc.create_mel_filter(
