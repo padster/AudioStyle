@@ -137,7 +137,7 @@ def audioTransferNicerSpectrograms():
     print fft2ImgProc.shape
 
     print "Transferring style from one spectrogram onto the other..."
-    partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=15)
+    partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=25)
     # partials = [fft1ImgProc]
     specOut = imgUtils.deprocess(partials[-1])
     specOut = specOut[:, :, 0] # hack - can only use one channel
@@ -195,7 +195,7 @@ def mfccSpectrogram():
     print fft2ImgProc.shape
 
     print "Transferring style from one spectrogram onto the other..."
-    partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=15)
+    partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=25)
     # partials = [fft1ImgProc]
     melSpecOut = imgUtils.deprocess(partials[-1])
     melSpecOut = melSpecOut[:, :, 0] # hack - can only use one channel
@@ -220,5 +220,5 @@ def mfccSpectrogram():
 if __name__ == '__main__':
     # runImageTransferTest()
     # runAudioTransferTest()
-    # audioTransferNicerSpectrograms()
-    mfccSpectrogram()
+    audioTransferNicerSpectrograms()
+    # mfccSpectrogram()
