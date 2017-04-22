@@ -1,3 +1,4 @@
+import sys
 import lasagne
 import pickle
 
@@ -8,8 +9,10 @@ import pickle
 from lasagne.layers import InputLayer, DenseLayer, NonlinearityLayer
 from lasagne.layers import Pool2DLayer as PoolLayer
 from lasagne.nonlinearities import softmax
-# from lasagne.layers.dnn import Conv2DDNNLayer as ConvLayer # Cuda GPU
-from lasagne.layers import Conv2DLayer as ConvLayer # CPU
+if "--cpu" not in sys.argv:
+    from lasagne.layers.dnn import Conv2DDNNLayer as ConvLayer # Cuda GPU
+else:
+    from lasagne.layers import Conv2DLayer as ConvLayer # CPU
 
 # Note: tweaked to use average pooling instead of maxpooling
 def vggStructure(width, height):

@@ -1,10 +1,14 @@
 # Custom ignores for this project:
 
+# AWS identity:
+*.pem
+
 # VGG19 weights
 vgg19_normalized.pkl
 
 # Large binary files, don't commit:
 data/
+output/
 *.wav
 
 

@@ -14,6 +14,7 @@ import vggnet
 
 
 def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, varCost=0.1e-7):
+    print "Performing image transfer, with %d iterations" % iterations
     _, _, h, w = photo.shape
     _, _, h2, w2 = style.shape
     print photo.shape

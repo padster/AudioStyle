@@ -1,3 +1,14 @@
+"""
+run.py for 540 project. Runs audio transfer using the image transfer algorithm.
+Flags:
+ --cpu runs it in CPU mode (with bad quality transfers), default is GPU mode
+ --spec runs it by transfering Spectrogram images. Default is transferring MFCC images.
+"""
+
+import sys
+USE_GPU = "--cpu" not in sys.argv
+print "====\nUsing GPU? " + str(USE_GPU) + "\n====\n"
+
 import matplotlib.pyplot as plt
 import numpy as np
 import skimage.transform
@@ -7,9 +18,16 @@ import imageTransfer
 import imgUtils
 import mfcc
 
+OUTPUT_FOLDER = "output/"
 IMAGE_SZ = 64
 
-# HACK - move elsewhere
+# Parameters:
+ITERATIONS_GPU_SPEC = 25
+ITERATIONS_GPU_MFCC = 40
+ITERATIONS_CPU_SPEC = 2
+ITERATIONS_CPU_MFCC = 2
+
+# HACK - move elsewhere?
 # Subplots helper: hide axes, minimize space between, maximize window
 def cleanSubplots(r, c, pad=0.05):
     f, ax = plt.subplots(r, c)
@@ -29,6 +47,13 @@ def cleanSubplots(r, c, pad=0.05):
     f.subplots_adjust(left=pad, right=1.0-pad, top=1.0-pad, bottom=pad, hspace=pad)
     plt.get_current_fig_manager().window.showMaximized()
     return ax
+
+# HACK - move elsewhere?
+# Visualization helper: Show results, or write to file if running on AWS:
+def saveOrShow(path):
+    plt.savefig(OUTPUT_FOLDER + path)
+    if not USE_GPU:
+        plt.show()
 
 def centreCrop(img, sz):
     h, w, _ = img.shape
@@ -68,48 +93,10 @@ def runImageTransferTest():
     plt.tight_layout()
     plt.show()
 
-def runAudioTransferTest():
-    r1, s1 = audioUtils.fileToSamples('data/marsyas/asWav/rock17.wav')
-    r2, s2 = audioUtils.fileToSamples('data/marsyas/asWav/reggae07.wav')
-    assert r1 == r2 and len(s1) == len(s2) # should be 661794 = 2 * 3 * 7^2 * 2251 for marsyas
-
-    CHUNK_SIZE = 294
-    fft1 = audioUtils.stft(s1, CHUNK_SIZE)
-    fft2 = audioUtils.stft(s2, CHUNK_SIZE)
-
-    fft1Img = np.log1p(np.abs(fft1))
-    fft2Img = np.log1p(np.abs(fft2))
-    # mx = max(np.max(fft1Img), np.max(fft2Img))
-    # mn = min(np.min(fft1Img), np.min(fft2Img))
-    mx1, mn1 = np.max(fft1Img), np.min(fft1Img)
-    mx2, mn2 = np.max(fft2Img), np.min(fft2Img)
-    fft1Img = ((fft1Img - mn1) / (mx1 - mn1) * 256).astype('uint8')
-    fft2Img = ((fft2Img - mn2) / (mx2 - mn2) * 256).astype('uint8')
-    _, fft1ImgProc = imgUtils.preprocess(fft1Img)
-    _, fft2ImgProc = imgUtils.preprocess(fft2Img)
-
-    print "Running..."
-    partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=4)
-    print len(partials)
-    result = imgUtils.deprocess(partials[-1])
-    result = result[:, :, 0] # hack - can only use one channel
-    result = mn1 + (mx1 - mn1) * result / 256
-    outPower = np.expm1(result)
-    outPhase = np.angle(fft1) # hack - should transfer angle style too
-    outSpec = outPower * np.exp(1j * outPhase)
-    outSamples = audioUtils.rstft(outSpec, CHUNK_SIZE)
-    audioUtils.samplesToFile('out.wav', r1, outSamples)
-
-    ax = cleanSubplots(3, 1)
-    ax[0].imshow(fft1Img, cmap='gist_heat_r')
-    ax[1].imshow(fft2Img, cmap='gist_heat_r')
-    ax[2].imshow(result, cmap='gist_heat_r')
-    plt.show()
-
-def audioTransferNicerSpectrograms():
+def audioTransferSpec():
     print "Loading files..."
-    r1, s1 = audioUtils.loadFirst10s('data/marsyas/asWav/rock17.wav')
-    r2, s2 = audioUtils.loadFirst10s('data/marsyas/asWav/reggae07.wav')
+    r1, s1 = audioUtils.loadFirst10s('data/rock17.wav')
+    r2, s2 = audioUtils.loadFirst10s('data/reggae07.wav')
     s1 = audioUtils.preprocess(s1, r1)
     s2 = audioUtils.preprocess(s2, r2)
     assert r1 == r2 and len(s1) == len(s2) # should be 220500 = 2^2 * 3^2 * 5^3 * 7^2 for first10s
@@ -117,10 +104,6 @@ def audioTransferNicerSpectrograms():
     print "Generating spectrograms..."
     spec1 = audioUtils.toSpectrogram(s1)
     spec2 = audioUtils.toSpectrogram(s2)
-    ax = cleanSubplots(2, 1)
-    ax[0].matshow(spec1.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
-    ax[1].matshow(spec2.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
-    plt.show()
 
     print "Preprocessing spectrogram images"
     mx1, mn1 = np.max(spec1), np.min(spec1)
@@ -137,7 +120,8 @@ def audioTransferNicerSpectrograms():
     print fft2ImgProc.shape
 
     print "Transferring style from one spectrogram onto the other..."
-    partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=25)
+    ITER = ITERATIONS_GPU_SPEC if USE_GPU else ITERATIONS_CPU_SPEC
+    partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=ITER)
     # partials = [fft1ImgProc]
     specOut = imgUtils.deprocess(partials[-1])
     specOut = specOut[:, :, 0] # hack - can only use one channel
@@ -146,21 +130,24 @@ def audioTransferNicerSpectrograms():
     specOut = skimage.transform.rescale(specOut, ZOOM, order=3, preserve_range=True)
 
     ax = cleanSubplots(3, 1)
+    ax[0].set_title('Content Spec')
     ax[0].matshow(spec1.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    ax[1].set_title('Style Spec')
     ax[1].matshow(spec2.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    ax[2].set_title('Result Spec')
     ax[2].matshow(specOut.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
-    plt.show()
+    saveOrShow("specOut.png")
 
     print "Inverting spectrogram back to samples..."
     outSamples = audioUtils.fromSpectrogram(specOut)
-    audioUtils.samplesToFile('specOut.wav', r1, outSamples)
+    audioUtils.samplesToFile(OUTPUT_FOLDER + 'specOut.wav', r1, outSamples)
 
 
 # NOTE: Doesn't work well even without style transfer yet...need to debug.
-def mfccSpectrogram():
+def audioTransferMFCC():
     print "Loading files..."
-    r1, s1 = audioUtils.loadFirst10s('data/marsyas/asWav/rock17.wav')
-    r2, s2 = audioUtils.loadFirst10s('data/marsyas/asWav/reggae07.wav')
+    r1, s1 = audioUtils.loadFirst10s('data/rock17.wav')
+    r2, s2 = audioUtils.loadFirst10s('data/reggae07.wav')
     s1 = audioUtils.preprocess(s1, r1)
     s2 = audioUtils.preprocess(s2, r2)
     assert r1 == r2 and len(s1) == len(s2) # should be 661794 = 2 * 3 * 7^2 * 2251 for marsyas
@@ -168,10 +155,6 @@ def mfccSpectrogram():
     print "Generating spectrograms..."
     spec1 = audioUtils.toSpectrogram(s1)
     spec2 = audioUtils.toSpectrogram(s2)
-    ax = cleanSubplots(2, 1)
-    ax[0].matshow(spec1.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
-    ax[1].matshow(spec2.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
-    plt.show()
 
     print "Generating mel spectrograms..."
     melSpec1 = audioUtils.toMelSpectrogram(spec1)
@@ -179,10 +162,13 @@ def mfccSpectrogram():
     print "MEL SIZE:"
     print melSpec1.shape
 
-    ax = cleanSubplots(2, 1)
-    ax[0].matshow(melSpec1, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
-    ax[1].matshow(melSpec2, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
-    plt.show()
+    if not USE_GPU:
+        ax = cleanSubplots(2, 1)
+        ax[0].set_title('Content MFCC')
+        ax[0].matshow(melSpec1, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+        ax[1].set_title('Style MFCC')
+        ax[1].matshow(melSpec2, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+        plt.show()
 
     print "Preprocessing spectrogram images"
     mx1, mn1 = np.max(melSpec1), np.min(melSpec1)
@@ -194,31 +180,44 @@ def mfccSpectrogram():
     _, fft2ImgProc = imgUtils.preprocess(fft2Img)
     print fft2ImgProc.shape
 
-    print "Transferring style from one spectrogram onto the other..."
-    partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=25)
+    print "Transferring style from one mfcc grid conto the other..."
+    ITER = ITERATIONS_GPU_MFCC if USE_GPU else ITERATIONS_CPU_MFCC
+    partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=ITER)
     # partials = [fft1ImgProc]
     melSpecOut = imgUtils.deprocess(partials[-1])
     melSpecOut = melSpecOut[:, :, 0] # hack - can only use one channel
     melSpecOut = mn1 + (mx1 - mn1) * melSpecOut / 256.0
 
     ax = cleanSubplots(3, 1)
+    ax[0].set_title('Content MFCC')
     ax[0].matshow(melSpec1, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    ax[1].set_title('Style MFCC')
     ax[1].matshow(melSpec2, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    ax[2].set_title('Result MFCC')
     ax[2].matshow(melSpecOut, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
-    plt.show()
+    saveOrShow("melOut.png")
 
     print "Inverting mel result back to spectrogram..."
-    specInv = audioUtils.fromMelSpectrogram(melSpecOut)
+    specOut = audioUtils.fromMelSpectrogram(melSpecOut)
+    ax = cleanSubplots(3, 1)
+    ax[0].set_title('Content Spec')
+    ax[0].matshow(spec1.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    ax[1].set_title('Style Spec')
+    ax[1].matshow(spec2.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    ax[2].set_title('Result Spec')
+    ax[2].matshow(specOut.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
+    saveOrShow("specOut.png")
 
     print "Inverting spectrogram back to samples..."
-    sInv = audioUtils.fromSpectrogram(specInv)
+    sInv = audioUtils.fromSpectrogram(specOut)
 
     print "Saving..."
-    audioUtils.samplesToFile('melOut.wav', r1, sInv)
+    audioUtils.samplesToFile(OUTPUT_FOLDER + 'melOut.wav', r1, sInv)
 
 
 if __name__ == '__main__':
     # runImageTransferTest()
-    # runAudioTransferTest()
-    audioTransferNicerSpectrograms()
-    # mfccSpectrogram()
+    if "--spec" in sys.argv:
+        audioTransferSpec()
+    else:
+        audioTransferMFCC()
