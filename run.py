@@ -17,6 +17,7 @@ import audioUtils
 import imageTransfer
 import imgUtils
 import mfcc
+import viz
 
 OUTPUT_FOLDER = "output/"
 IMAGE_SZ = 64
@@ -26,34 +27,6 @@ ITERATIONS_GPU_SPEC = 25
 ITERATIONS_GPU_MFCC = 40
 ITERATIONS_CPU_SPEC = 2
 ITERATIONS_CPU_MFCC = 2
-
-# HACK - move elsewhere?
-# Subplots helper: hide axes, minimize space between, maximize window
-def cleanSubplots(r, c, pad=0.05):
-    f, ax = plt.subplots(r, c)
-    if r == 1 and c == 1:
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-    elif r == 1 or c == 1:
-        for a in ax:
-            a.get_xaxis().set_visible(False)
-            a.get_yaxis().set_visible(False)
-    else:
-        for aRow in ax:
-            for a in aRow:
-                a.get_xaxis().set_visible(False)
-                a.get_yaxis().set_visible(False)
-
-    f.subplots_adjust(left=pad, right=1.0-pad, top=1.0-pad, bottom=pad, hspace=pad)
-    plt.get_current_fig_manager().window.showMaximized()
-    return ax
-
-# HACK - move elsewhere?
-# Visualization helper: Show results, or write to file if running on AWS:
-def saveOrShow(path):
-    plt.savefig(OUTPUT_FOLDER + path)
-    if not USE_GPU:
-        plt.show()
 
 def centreCrop(img, sz):
     h, w, _ = img.shape
@@ -129,7 +102,7 @@ def audioTransferSpec():
     # resize back up:
     specOut = skimage.transform.rescale(specOut, ZOOM, order=3, preserve_range=True)
 
-    ax = cleanSubplots(3, 1)
+    ax = viz.cleanSubplots(3, 1)
     ax[0].set_title('Content Spec')
     ax[0].matshow(spec1.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
     ax[1].set_title('Style Spec')
@@ -163,7 +136,7 @@ def audioTransferMFCC():
     print melSpec1.shape
 
     if not USE_GPU:
-        ax = cleanSubplots(2, 1)
+        ax = viz.cleanSubplots(2, 1)
         ax[0].set_title('Content MFCC')
         ax[0].matshow(melSpec1, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
         ax[1].set_title('Style MFCC')
@@ -188,7 +161,7 @@ def audioTransferMFCC():
     melSpecOut = melSpecOut[:, :, 0] # hack - can only use one channel
     melSpecOut = mn1 + (mx1 - mn1) * melSpecOut / 256.0
 
-    ax = cleanSubplots(3, 1)
+    ax = viz.cleanSubplots(3, 1)
     ax[0].set_title('Content MFCC')
     ax[0].matshow(melSpec1, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
     ax[1].set_title('Style MFCC')
@@ -199,7 +172,7 @@ def audioTransferMFCC():
 
     print "Inverting mel result back to spectrogram..."
     specOut = audioUtils.fromMelSpectrogram(melSpecOut)
-    ax = cleanSubplots(3, 1)
+    ax = viz.cleanSubplots(3, 1)
     ax[0].set_title('Content Spec')
     ax[0].matshow(spec1.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
     ax[1].set_title('Style Spec')
