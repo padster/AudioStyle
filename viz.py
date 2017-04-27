@@ -1,3 +1,6 @@
+import sys
+USE_GPU = "--cpu" not in sys.argv
+
 import matplotlib.pyplot as plt
 
 OUTPUT_FOLDER = "output/"

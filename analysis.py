@@ -147,5 +147,5 @@ def runVggAutocorrelations(layers, showRows=True):
             plt.show()
 
 if __name__ == '__main__':
-    #runMFCCAutocorrelations()
-    runVggAutocorrelations(layers=['conv1_1', 'conv2_1', 'conv3_1', 'conv4_1', 'conv5_1'], showRows=False)
+    runMFCCAutocorrelations()
+    #srunVggAutocorrelations(layers=['conv1_1', 'conv2_1', 'conv3_1', 'conv4_1', 'conv5_1'], showRows=True)
