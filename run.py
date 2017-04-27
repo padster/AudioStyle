@@ -109,7 +109,7 @@ def audioTransferSpec():
     ax[1].matshow(spec2.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
     ax[2].set_title('Result Spec')
     ax[2].matshow(specOut.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
-    saveOrShow("specOut.png")
+    viz.saveOrShow("specOut.png")
 
     print "Inverting spectrogram back to samples..."
     outSamples = audioUtils.fromSpectrogram(specOut)
@@ -168,7 +168,7 @@ def audioTransferMFCC():
     ax[1].matshow(melSpec2, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
     ax[2].set_title('Result MFCC')
     ax[2].matshow(melSpecOut, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
-    saveOrShow("melOut.png")
+    viz.saveOrShow("melOut.png")
 
     print "Inverting mel result back to spectrogram..."
     specOut = audioUtils.fromMelSpectrogram(melSpecOut)
@@ -179,7 +179,7 @@ def audioTransferMFCC():
     ax[1].matshow(spec2.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
     ax[2].set_title('Result Spec')
     ax[2].matshow(specOut.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
-    saveOrShow("specOut.png")
+    viz.saveOrShow("specOut.png")
 
     print "Inverting spectrogram back to samples..."
     sInv = audioUtils.fromSpectrogram(specOut)

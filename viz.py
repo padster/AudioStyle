@@ -18,7 +18,10 @@ def cleanSubplots(r, c, pad=0.05, axes=False):
                     a.get_yaxis().set_visible(False)
 
     f.subplots_adjust(left=pad, right=1.0-pad, top=1.0-pad, bottom=pad, hspace=pad)
-    plt.get_current_fig_manager().window.showMaximized()
+    try:
+        plt.get_current_fig_manager().window.showMaximized()
+    except AttributeError:
+        pass # Can't maximize, sorry :(
     return ax
 
 # Visualization helper: Show results, or write to file if running on AWS:
