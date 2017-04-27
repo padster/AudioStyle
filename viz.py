@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 
+OUTPUT_FOLDER = "output/"
+
 # Subplots helper: hide axes, minimize space between, maximize window
 def cleanSubplots(r, c, pad=0.05, axes=False):
     f, ax = plt.subplots(r, c)
