@@ -295,7 +295,7 @@ def create_mel_filter(fft_size, n_freq_components = 64, start_freq = 300, end_fr
 
 def make_mel(spectrogram, mel_filter, shorten_factor = 1):
     mel_spec =np.transpose(mel_filter).dot(np.transpose(spectrogram))
-    mel_spec = scipy.ndimage.zoom(mel_spec.astype('float32'), [1, 1./shorten_factor]).astype('float16')
+    mel_spec = scipy.ndimage.zoom(mel_spec.astype('float32'), [1, 1./shorten_factor])
     mel_spec = mel_spec[:,1:-1] # a little hacky but seemingly needed for clipping
     return mel_spec
 
@@ -305,6 +305,6 @@ def mel_to_spectrogram(mel_spec, mel_inversion_filter, spec_thresh, shorten_fact
     """
     mel_spec = (mel_spec+spec_thresh)
     uncompressed_spec = np.transpose(np.transpose(mel_spec).dot(mel_inversion_filter))
-    uncompressed_spec = scipy.ndimage.zoom(uncompressed_spec.astype('float32'), [1,shorten_factor]).astype('float16')
+    uncompressed_spec = scipy.ndimage.zoom(uncompressed_spec.astype('float32'), [1,shorten_factor])
     uncompressed_spec = uncompressed_spec -4
     return uncompressed_spec
