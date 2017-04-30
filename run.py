@@ -7,7 +7,13 @@ Flags:
 
 import sys
 USE_GPU = "--cpu" not in sys.argv
-print "====\nUsing GPU? " + str(USE_GPU) + "\n====\n"
+USE_SPEC = "--spec" in sys.argv
+ROW_AC_LOSS = "--rowac" in sys.argv
+print "====\nBackend: %s\nVisualization: %s\nExtra losses: %s\n====\n" % (
+    "GPU" if USE_GPU else "CPU",
+    "Spectrogram" if USE_SPEC else "MFCC",
+    "Row AC" if ROW_AC_LOSS else "",
+)
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,8 +31,8 @@ IMAGE_SZ = 64
 # Parameters:
 ITERATIONS_GPU_SPEC = 25
 ITERATIONS_GPU_MFCC = 40
-ITERATIONS_CPU_SPEC = 2
-ITERATIONS_CPU_MFCC = 2
+ITERATIONS_CPU_SPEC = 1
+ITERATIONS_CPU_MFCC = 1
 
 def centreCrop(img, sz):
     h, w, _ = img.shape
@@ -55,7 +61,7 @@ def runImageTransferTest():
     plt.imshow(rawim)
     plt.show()
 
-    partials = imageTransfer.transfer(photo, style)
+    vgg, partials = imageTransfer.transfer(photo, style)
 
     # plt.figure(figsize=(12,12))
     for i in range(len(partials)):
@@ -82,7 +88,7 @@ def audioTransferSpec():
     mx1, mn1 = np.max(spec1), np.min(spec1)
     mx2, mn2 = np.max(spec2), np.min(spec2)
     fft1Img = ((spec1 - mn1) / (mx1 - mn1) * 256).astype('uint8')
-    fft2Img = ((spec1 - mn2) / (mx2 - mn2) * 256).astype('uint8')
+    fft2Img = ((spec2 - mn2) / (mx2 - mn2) * 256).astype('uint8')
     # Each will be 1024 x 5168, downsample to
     w, h = fft1Img.shape
     ZOOM = 4 # Should be a factor of gcd(1024, 1712) = 16
@@ -94,9 +100,9 @@ def audioTransferSpec():
 
     print "Transferring style from one spectrogram onto the other..."
     ITER = ITERATIONS_GPU_SPEC if USE_GPU else ITERATIONS_CPU_SPEC
-    partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=ITER)
-    # partials = [fft1ImgProc]
-    specOut = imgUtils.deprocess(partials[-1])
+    vgg, partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=ITER)
+    fftOutProc = partials[-1]
+    specOut = imgUtils.deprocess(fftOutProc)
     specOut = specOut[:, :, 0] # hack - can only use one channel
     specOut = mn1 + (mx1 - mn1) * specOut / 256.0
     # resize back up:
@@ -110,6 +116,9 @@ def audioTransferSpec():
     ax[2].set_title('Result Spec')
     ax[2].matshow(specOut.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
     viz.saveOrShow("specOut.png")
+
+    if ROW_AC_LOSS:
+        viz.showRowAutocorrlations(vgg, spec1, spec2, specOut, fft1ImgProc, fft2ImgProc, fftOutProc)
 
     print "Inverting spectrogram back to samples..."
     outSamples = audioUtils.fromSpectrogram(specOut)
@@ -155,9 +164,9 @@ def audioTransferMFCC():
 
     print "Transferring style from one mfcc grid conto the other..."
     ITER = ITERATIONS_GPU_MFCC if USE_GPU else ITERATIONS_CPU_MFCC
-    partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=ITER)
-    # partials = [fft1ImgProc]
-    melSpecOut = imgUtils.deprocess(partials[-1])
+    vgg, partials = imageTransfer.transfer(fft1ImgProc, fft2ImgProc, iterations=ITER)
+    fftOutProc = partials[-1]
+    melSpecOut = imgUtils.deprocess(fftOutProc)
     melSpecOut = melSpecOut[:, :, 0] # hack - can only use one channel
     melSpecOut = mn1 + (mx1 - mn1) * melSpecOut / 256.0
 
@@ -169,6 +178,9 @@ def audioTransferMFCC():
     ax[2].set_title('Result MFCC')
     ax[2].matshow(melSpecOut, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
     viz.saveOrShow("melOut.png")
+
+    if ROW_AC_LOSS:
+        viz.showRowAutocorrlations(vgg, melSpec1, melSpec2, melSpecOut, fft1ImgProc, fft2ImgProc, fftOutProc)
 
     print "Inverting mel result back to spectrogram..."
     specOut = audioUtils.fromMelSpectrogram(melSpecOut)
@@ -190,7 +202,7 @@ def audioTransferMFCC():
 
 if __name__ == '__main__':
     # runImageTransferTest()
-    if "--spec" in sys.argv:
+    if USE_SPEC:
         audioTransferSpec()
     else:
         audioTransferMFCC()

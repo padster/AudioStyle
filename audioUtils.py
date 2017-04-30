@@ -32,7 +32,6 @@ def loadFirst10s(path):
 
 # (Samples, Rate) -> Preprocessed Samples
 def preprocess(samples, rate):
-    print rate
     return mfcc.butter_bandpass_filter(samples, LOW_CUT, HIGH_CUT, rate, order=1)
 
 # 1D Samples -> 2D frequency spectrogram matrix

@@ -1,7 +1,14 @@
 import sys
 USE_GPU = "--cpu" not in sys.argv
 
+import lasagne
 import matplotlib.pyplot as plt
+import numpy as np
+import scipy.signal
+import theano
+import theano.tensor as T
+
+from lasagne.utils import floatX
 
 OUTPUT_FOLDER = "output/"
 
@@ -22,7 +29,7 @@ def cleanSubplots(r, c, pad=0.05, axes=False):
                     a.get_xaxis().set_visible(False)
                     a.get_yaxis().set_visible(False)
 
-    f.subplots_adjust(left=pad, right=1.0-pad, top=1.0-pad, bottom=pad, hspace=pad)
+    f.subplots_adjust(left=pad, right=1.0-pad, top=1.0-pad, bottom=pad, hspace=0.2)
     try:
         plt.get_current_fig_manager().window.showMaximized()
     except AttributeError:
@@ -31,6 +38,64 @@ def cleanSubplots(r, c, pad=0.05, axes=False):
 
 # Visualization helper: Show results, or write to file if running on AWS:
 def saveOrShow(path):
+    plt.gcf().set_size_inches(18.5, 10.5)
     plt.savefig(OUTPUT_FOLDER + path)
     if not USE_GPU:
         plt.show()
+
+### Row autocorrelations
+def crossCorrelate(a, b):
+    return scipy.signal.fftconvolve(a, b[::-1])
+
+def crossCorrelateDiff(a):
+    cc = crossCorrelate(a, a)
+    return np.diff(cc[len(cc)//2:])
+
+def specRowAC(specImg):
+    corrs = []
+    for r in range(len(specImg)):
+        corrs.append(crossCorrelateDiff(specImg[r]))
+    return np.mean(corrs, axis=0)
+
+def activationRowAC(title, layerMap, tfImg):
+    print 'Computing activations for %s...' % title
+    result = {}
+    img = T.dtensor4()
+    for layer in layerMap.keys():
+        output = lasagne.layers.get_output(layerMap[layer], img)
+        activations = theano.shared(output.eval({img: floatX(tfImg)})).get_value().astype('float64')
+        _, d, r, c = activations.shape
+        corrs = []
+        for dd in range(d):
+            for rr in range(r):
+                row = activations[0, dd, rr, :]
+                corrs.append(crossCorrelateDiff(row))
+        result[layer] = np.mean(corrs, axis=0)
+    return result
+
+
+def showRowAutocorrlations(vgg, sContent, sStyle, sResult, tfContent, tfStyle, tfResult):
+    layers = ['conv1_1', 'conv2_1', 'conv3_1', 'conv4_1', 'conv5_1']
+    layerMap = {layer: vgg[layer] for layer in layers}
+    contentMap = activationRowAC('Content', layerMap, tfContent)
+    styleMap   = activationRowAC('Style'  , layerMap, tfStyle)
+    resultMap  = activationRowAC('Result' , layerMap, tfResult)
+
+    SPEC = 'input'
+    layers.insert(0, SPEC)
+    contentMap[SPEC] = specRowAC(sContent)
+    styleMap[SPEC]   = specRowAC(sStyle)
+    resultMap[SPEC]  = specRowAC(sResult)
+
+    ax = cleanSubplots(len(layers), 1)
+    for l in range(len(layers)):
+        layer = layers[l]
+        ax[l].set_title('Layer: %s' % layer)
+        ax[l].plot(contentMap[layer], 'r')
+        ax[l].plot(styleMap[layer], 'b')
+        ax[l].plot(resultMap[layer], 'g')
+        off = len(contentMap[layer]) // 40 + 1
+        minY = np.min([np.min(contentMap[layer][off:]), np.min(styleMap[layer][off:]), np.min(resultMap[layer][off:])])
+        maxY = np.max([np.max(contentMap[layer][off:]), np.max(styleMap[layer][off:]), np.max(resultMap[layer][off:])])
+        ax[l].set_ylim([minY, maxY])
+    saveOrShow('row_ac.png')

@@ -85,4 +85,4 @@ def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, var
         xAt = generated_image.get_value().astype('float64')
         xs.append(xAt)
 
-    return xs
+    return net, xs
