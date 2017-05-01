@@ -60,10 +60,11 @@ def specRowAC(specImg):
 def activationRowAC(title, layerMap, tfImg):
     print 'Computing activations for %s...' % title
     result = {}
-    img = T.dtensor4()
+    ftfImg = floatX(tfImg)
+    img = T.tensor4()
     for layer in layerMap.keys():
         output = lasagne.layers.get_output(layerMap[layer], img)
-        activations = theano.shared(output.eval({img: floatX(tfImg)})).get_value().astype('float64')
+        activations = theano.shared(output.eval({img: ftfImg})).get_value().astype('float64')
         _, d, r, c = activations.shape
         corrs = []
         for dd in range(d):

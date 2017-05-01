@@ -1,5 +1,8 @@
 # Code from Lasagne Neural style recipe:
 # https://github.com/Lasagne/Recipes/blob/master/examples/styletransfer/Art%20Style%20Transfer.ipynb
+import sys
+ROW_AC_LOSS = "--rowac" in sys.argv
+
 import lasagne
 import numpy as np
 import scipy
@@ -13,7 +16,7 @@ import losses
 import vggnet
 
 
-def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, varCost=0.1e-7):
+def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, varCost=0.1e-7, rowACCost=1.0):
     print "Performing image transfer, with %d iterations" % iterations
     _, _, h, w = photo.shape
     _, _, h2, w2 = style.shape
@@ -43,7 +46,7 @@ def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, var
     gen_features = {k: v for k, v in zip(layers.keys(), gen_features)}
 
     # Define loss function
-    totalLoss = sum([
+    lossParts = [
         # content loss
         contentCost * losses.content(photo_features, gen_features, 'conv4_2'),
         # style loss
@@ -53,15 +56,24 @@ def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, var
         styleCost * losses.style(style_features, gen_features, 'conv4_1'),
         styleCost * losses.style(style_features, gen_features, 'conv5_1'),
         # total variation penalty
-        varCost * losses.totalVariation(generated_image)
-    ])
+        varCost * losses.totalVariation(generated_image),
+    ]
+    if ROW_AC_LOSS:
+        lossParts.extend([
+            # Autocorrelation:
+            # rowACCost * losses.totalRowAC(style, generated_image),
+            rowACCost * losses.totalRowAC(style_features, gen_features, 'conv1_1'),
+            #rowACCost * losses.totalRowAC(style_features, gen_features, 'conv2_1'),
+        ])
+    totalLoss = sum(lossParts)
 
     # Theano functions to evaluate loss and gradient
+    print 'Building gradient...'
     f_loss = theano.function([], totalLoss)
     f_grad = theano.function([], T.grad(totalLoss, generated_image))
 
     # Initialize with a noise image
-    print 'initialize noisy image...'
+    print 'Initializing noisy image...'
     generated_image.set_value(floatX(np.random.uniform(-128, 128, (1, 3, h, w))))
     xAt = generated_image.get_value().astype('float64')
     xs = [xAt]
