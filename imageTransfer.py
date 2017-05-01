@@ -16,7 +16,7 @@ import losses
 import vggnet
 
 
-def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, varCost=0.1e-7, rowACCost=1.0):
+def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, varCost=0.1e-7, rowACCost=1.e-9):
     print "Performing image transfer, with %d iterations" % iterations
     _, _, h, w = photo.shape
     _, _, h2, w2 = style.shape
@@ -61,9 +61,9 @@ def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, var
     if ROW_AC_LOSS:
         lossParts.extend([
             # Autocorrelation:
-            # rowACCost * losses.totalRowAC(style, generated_image),
-            rowACCost * losses.totalRowAC(style_features, gen_features, 'conv1_1'),
-            #rowACCost * losses.totalRowAC(style_features, gen_features, 'conv2_1'),
+            rowACCost * losses.totalRowAC(style, generated_image),
+            # rowACCost * losses.totalRowAC(style_features, gen_features, 'conv1_1'),
+            # rowACCost * losses.totalRowAC(style_features, gen_features, 'conv2_1'),
         ])
     totalLoss = sum(lossParts)
 
@@ -83,6 +83,7 @@ def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, var
         x0 = floatX(x0.reshape((1, 3, h, w)))
         generated_image.set_value(x0)
         return f_loss().astype('float64')
+        # Losses should end up in the hundreds, or lower for mfcc
 
     def eval_grad(x0):
         x0 = floatX(x0.reshape((1, 3, h, w)))
