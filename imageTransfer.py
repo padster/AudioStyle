@@ -2,6 +2,7 @@
 # https://github.com/Lasagne/Recipes/blob/master/examples/styletransfer/Art%20Style%20Transfer.ipynb
 import sys
 ROW_AC_LOSS = "--rowac" in sys.argv
+COL_AC_LOSS = "--colac" in sys.argv
 
 import lasagne
 import numpy as np
@@ -16,7 +17,8 @@ import losses
 import vggnet
 
 
-def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, varCost=0.1e-7, rowACCost=1.e-9):
+def transfer(photo, style, iterations=9,
+             contentCost=0.001, styleCost=0.2e6, varCost=0.1e-7, rowACCost=1.e-9, colACCost=1e-9):
     print "Performing image transfer, with %d iterations" % iterations
     _, _, h, w = photo.shape
     _, _, h2, w2 = style.shape
@@ -61,9 +63,16 @@ def transfer(photo, style, iterations=9, contentCost=0.001, styleCost=0.2e6, var
     if ROW_AC_LOSS:
         lossParts.extend([
             # Autocorrelation:
-            rowACCost * losses.totalRowAC(style, generated_image),
+            rowACCost * losses.totalRowAC(style, generated_image, None),
             # rowACCost * losses.totalRowAC(style_features, gen_features, 'conv1_1'),
             # rowACCost * losses.totalRowAC(style_features, gen_features, 'conv2_1'),
+        ])
+    if COL_AC_LOSS:
+        lossParts.extend([
+            # Autocorrelation:
+            colACCost * losses.totalColAC(style, generated_image, None),
+            # colACCost * losses.totalColAC(style_features, gen_features, 'conv1_1'),
+            # colACCost * losses.totalColAC(style_features, gen_features, 'conv2_1'),
         ])
     totalLoss = sum(lossParts)
 
