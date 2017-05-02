@@ -106,5 +106,6 @@ def transfer(photo, style, iterations=9,
         scipy.optimize.fmin_l_bfgs_b(eval_loss, xAt.flatten(), fprime=eval_grad, maxfun=40, iprint=0)
         xAt = generated_image.get_value().astype('float64')
         xs.append(xAt)
+        print f_loss()
 
     return net, xs
