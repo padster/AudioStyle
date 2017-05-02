@@ -102,3 +102,9 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# LaTeX auxiliary files
+paper/CPSC540_FinalReport.log
+paper/CPSC540_FinalReport.pdf
+paper/CPSC540_FinalReport.aux
+paper/CPSC540_FinalReport.out
