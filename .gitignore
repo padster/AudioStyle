@@ -103,6 +103,9 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# Mac files
+.DS_Store
+
 # LaTeX auxiliary files
 paper/CPSC540_FinalReport.log
 paper/CPSC540_FinalReport.pdf
