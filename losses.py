@@ -42,10 +42,10 @@ def totalRowAC(A, X, layer):
 # Column autocorrelations
 def colAC(idx, div, A, X):
     i1, i2 = idx // div, idx % div
-    want = A[0, i1, :, i2:i2+1]
-    have = X[0, i1, :, i2:i2+1]
-    wantAC = TC.conv2d(want, want[::-1, :], border_mode='full')
-    haveAC = TC.conv2d(have, have[::-1, :], border_mode='full')
+    want = A[0, i1, :, i2:i2+1].T
+    have = X[0, i1, :, i2:i2+1].T
+    wantAC = TC.conv2d(want, want[:, ::-1], border_mode='full')
+    haveAC = TC.conv2d(have, have[:, ::-1], border_mode='full')
     return ((wantAC - haveAC)**2).sum()
 
 def totalColAC(A, X, layer):
