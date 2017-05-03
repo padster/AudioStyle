@@ -93,7 +93,7 @@ def audioTransferSpec():
     fft2Img = ((spec2 - mn2) / (mx2 - mn2) * 256).astype('uint8')
     # Each will be 1024 x 5168, downsample to
     w, h = fft1Img.shape
-    ZOOM = 4 # Should be a factor of gcd(1024, 1712) = 16
+    ZOOM = 2 # Should be a factor of gcd(1024, 1712) = 16
     fft1Img = skimage.transform.rescale(fft1Img, 1.0/ZOOM, order=3, preserve_range=True)
     fft2Img = skimage.transform.rescale(fft2Img, 1.0/ZOOM, order=3, preserve_range=True)
     _, fft1ImgProc = imgUtils.preprocess(fft1Img)
@@ -119,10 +119,8 @@ def audioTransferSpec():
     ax[2].matshow(specOut.T, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
     viz.saveOrShow("specOut.png")
 
-    if ROW_AC_LOSS:
-        viz.showRowAutocorrlations(vgg, spec1.T, spec2.T, specOut.T, fft1ImgProc, fft2ImgProc, fftOutProc)
-    if COL_AC_LOSS:
-        viz.showColAutocorrlations(vgg, spec1.T, spec2.T, specOut.T, fft1ImgProc, fft2ImgProc, fftOutProc)
+    viz.showRowAutocorrlations(vgg, spec1.T, spec2.T, specOut.T, fft1ImgProc, fft2ImgProc, fftOutProc, transposed=True)
+    viz.showColAutocorrlations(vgg, spec1.T, spec2.T, specOut.T, fft1ImgProc, fft2ImgProc, fftOutProc, transposed=True)
 
     print "Inverting spectrogram back to samples..."
     outSamples = audioUtils.fromSpectrogram(specOut)
@@ -183,10 +181,8 @@ def audioTransferMFCC():
     ax[2].matshow(melSpecOut, interpolation='nearest', aspect='auto', cmap=plt.cm.afmhot, origin='lower')
     viz.saveOrShow("melOut.png")
 
-    if ROW_AC_LOSS:
-        viz.showRowAutocorrlations(vgg, melSpec1, melSpec2, melSpecOut, fft1ImgProc, fft2ImgProc, fftOutProc)
-    if COL_AC_LOSS:
-        viz.showColAutocorrlations(vgg, melSpec1, melSpec2, melSpecOut, fft1ImgProc, fft2ImgProc, fftOutProc)
+    viz.showRowAutocorrlations(vgg, melSpec1, melSpec2, melSpecOut, fft1ImgProc, fft2ImgProc, fftOutProc)
+    viz.showColAutocorrlations(vgg, melSpec1, melSpec2, melSpecOut, fft1ImgProc, fft2ImgProc, fftOutProc)
 
     print "Inverting mel result back to spectrogram..."
     specOut = audioUtils.fromMelSpectrogram(melSpecOut)
