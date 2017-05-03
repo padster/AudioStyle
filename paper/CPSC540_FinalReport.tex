@@ -20,6 +20,9 @@
 \usepackage{amsfonts}       % blackboard math symbols
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
+\usepackage{subcaption}
+
+\PassOptionsToPackage{square,numbers}{natbib}
 
 \title{Artistic Style Transfer for Music Data}
 
@@ -41,43 +44,65 @@
 }
 
 \begin{document}
+\bibliographystyle{plain}
 
 \maketitle
 
 \begin{abstract}
-  Recent work in the area of deep learning demonstrates that for 2-D image data, style and content can be learned independently using convolutional neural networks (CNNs). The neural representation of style and content for two different images can be combined to generate a new image with the content of one image shown in the style of the other. We hypothesize that this method can be applied to music data to achieve a similar effect. Standard visual representations such as spectrograms or mel-frequency cepstrum coefficients (MFCCs) represent sound data in two dimensions, just like images. We directly apply the neural style transfer algorithm to these sound images and transform the result back into audio to generate new sounds with the content of one song and the genre or style of another. In addition, different loss functions that exploit the inherent structure of sound data are explored in an attempt to improve performance. 
+  Recent work in the area of deep learning demonstrates that for 2-D image data, style and content can be learned independently using convolutional neural networks (CNNs) . The neural representation of style and content for two different images can be combined to generate a new image with the content of one image shown in the style of the other. We hypothesize that this method can be applied to music data to achieve a similar effect. Standard visual representations such as spectrograms or mel-frequency cepstrum coefficients (MFCCs) represent sound data in two dimensions, just like images. We directly apply the neural style transfer algorithm to these sound images and transform the result back into audio to generate new sounds with the content of one song and the genre or style of another. In addition, different loss functions that exploit the inherent structure of sound data are explored in an attempt to improve performance. 
 \end{abstract}
 
 \section{Introduction}
 
-The application of machine learning principles to artistic or musical data is a unique and ongoing challenge. Machine learning is a powerful tool when it comes to classification of music and other forms of artistic media. Specifically, it is well-documented that deep learning and convolutional neural networks (CNN) allow for feature identification and subsequent categorization of audio content. However, a more difficult challenge exists in generating new, compelling artistic content. Projects such as DeepDream, neural style transfer and Magenta, a division of Google Brain, are all examples of recent endeavours in this field. This is such a new and challenging problem that even state-of-the-art work done in this field is approached with uncertainty [Magenta citation].
+The application of machine learning principles to artistic or musical data is a unique and ongoing challenge. Machine learning is a powerful tool when it comes to classification of music and other forms of artistic media. Specifically, it is well-documented that deep learning and convolutional neural networks (CNN) allow for feature identification and subsequent categorization of audio content \citep{feng2014, Li2010}. However, a more difficult challenge exists in generating new, compelling artistic content. Projects such as DeepDream, artistic style transfer \citep{Gatys2015}, and NSynth by Magenta \citep{nsynth2017}, are all examples of recent endeavours in this field. This is such a new and challenging problem that even state-of-the-art work done in this field is approached with uncertainty.
 
-Recent work done by Gatys et al. demonstrates that for two dimensional image data, style and content can be learned independently using CNNs. The activations from two networks, one trained on the input style image and one trained on the input content image, can be used to reconstruct a new output image. This new image preserves the global arrangement and layout of the content image, but with the appearance of the style input image. We suggest that this method can also be applied to music data to achieve a similar effect. We use standard visual representations such as spectrograms or mel-frequency cepstrum coefficients (MFCCs) to represent sound data in a format that is compatible with the neural style transfer algorithm. We can then apply the neural style transfer algorithm to these sound images. Transforming the output back into audio generates a new sound file with the content of one song and the genre or style of another.
+Recent work done by Gatys et al. \citep{Gatys2015} demonstrates that for 2D image data, style and content can be learned independently using CNNs. The activations from two networks, one trained on the input style image and one trained on the input content image, can be used to reconstruct a new output image. This new image preserves the global arrangement and layout of the content image, but with the appearance of the style input image. We suggest that this method can also be applied to music data to achieve a similar effect. We use standard visual representations such as spectrograms or mel-frequency cepstrum coefficients (MFCCs) to represent sound data in a format that is compatible with the neural style transfer algorithm. We can then apply the neural style transfer algorithm to these sound images. Transforming the output back into audio generates a new sound file with the content of one song and the genre or style of another.
 
-Spectrograms and MFCCs are two methods by which audio data can be represented as a two dimensional array. EXPLAIN SPECTROGRAMS/MFCCs.
+Spectrograms and MFCCs are two methods by which audio data can be represented as a two dimensional array. A spectrogram is a plot of the intensity of the short-time Fourier transform (STFT). Sound data is first sectioned into overlapping windows. The Fourier transform is applied to each window, and the results are output as a vertical line showing the intensity at different frequencies. The transform is applied to all of the windows, and the output vertical lines are arranged chronologically. This results in an intensity plot with the horizontal axis representing time, and the vertical axis representing frequency. MFCC plots are also short-term, spectral based features and can be interpreted as a spectrogram with additional processing. To obtain MFCC features, we take the logarithm of the amplitude from the spectorgram, map the results to the mel scale, and then perform a discrete cosine transform \citep{Logan2000}. The mel scale accounts for the difference between actual frequency and perceived pitch. Like the spectrogram, the resulting image plots frequency as a function of time. An example of the spectrogram and MFCCs for the same sound clip is shown in Figure 1.
 
-The loss functions implemented by Gatys et al. are a combination of squared-error loss between the feature representations of the output image and the content image, and mean-squared distance between the values of the Gram matrices of the output image and style image. To take advantage of this inherent structure that exists within spectrograms and MFCCs, we adjusted the loss functions for the CNNs used to train on the style and content images. We implemented a new loss function based on autocorrelations between horizontal and vertical pixels in an attempt to represent timing and harmonic patterns that exist in the audio data.
+\begin{figure}[h]
+\begin{subfigure}{0.5\textwidth}
+  \centering
+  \fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+  \caption{}
+\end{subfigure}
+ \begin{subfigure}{0.5\textwidth}
+  \centering
+  \fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+  \caption{}
+\end{subfigure}
+\caption{a) Spectrogram transformation of rock song clip b) MFCC transformation of rock song clip}
+\end{figure}
+
+The loss function implemented by Gatys et al. is a combination of squared-error loss between the feature representations of the output image and the content image, and mean-squared distance between the values of the Gram matrices of the output image and style image \citep{Gatys2015}. To take advantage of this inherent structure that exists within spectrograms and MFCCs, we adjusted the loss functions for the CNNs used to train on the style and content images. We implemented a new loss function based on autocorrelations between horizontal and vertical pixels in an attempt to represent timing and harmonic patterns that exist in the audio data.
+
+Discuss two contributions:
+
+1. Implement neural style transfer on audio data
+
+2. Explore different loss functions to improve performance on audio data.
 
 
 \section{Related Work}
 
-Our work builds upon the neural style transfer implemented by Gatys et al. The authors reconstructed photographs in the style of various well-known pieces of art. They discovered that, to an extent, the style and content of an image are separable. By training CNNs with specific feature spaces it is possible to independently learn the style and content of input images. They reconstruct a new image based on the network responses in specific layers for both the style and content images jointly. This results in an output image preserving the arrangement of one image, but with the texture and style of another. The two components are built into the loss function as distinct terms, allowing emphasis of style and content to be varied independently. These parameters are tuned by choosing the most visually appealing result. The applications investigated by the authors are limited to visual forms of media like paintings and photographs. We expand on their framework by modifying it and applying it to audio genre transfer tasks.
+Our work builds upon the neural style transfer implemented by Gatys et al. The authors reconstructed photographs in the style of various well-known pieces of art \citep{Gatys2015}. They discovered that, to an extent, the style and content of an image are separable. By training CNNs with specific feature spaces it is possible to independently learn the style and content of input images. They reconstruct a new image based on the network responses in specific layers for both the style and content images jointly. This results in an output image preserving the arrangement of one image, but with the texture and style of another. The two components are built into the loss function as distinct terms, allowing emphasis of style and content to be varied independently. These parameters are tuned by choosing the most visually appealing result. The applications investigated by the authors are limited to visual forms of media like paintings and photographs. We expand on their framework by modifying it and applying it to audio genre transfer tasks.
 
-Representing sound data in a way that is usable by the neural style transfer algorithm is a key component in our work. As such, we investigated different features that could be used. Tzanetakis et al. propose sets of features to represent texture, rhythmic structure, and instrumentation for the purpose of genre classification. Audio data is divided into analysis windows from which features are caluclated, including centroid, rolloff, flux, zero-crossings, and energy. Other features included the mel-frequency cepstral coefficients (MFCCs) and autocorrelations of processed signals. MFCCs have proven to be especially useful in speech recognition tasks. Using these feature sets, each genre is modelled as a multivariate Gaussian and new audio is classified using standard Gaussian classification. Though our ultimate goal is not genre classification, selecting meaningful features that represent the audio in a way that is compatible with the neural style transfer algorithm is an important step.
+Representing sound data in a way that is usable by the neural style transfer algorithm is a key component in our work. As such, we investigated different features that could be used. Tzanetakis et al. propose sets of features to represent texture, rhythmic structure, and instrumentation for the purpose of genre classification \citep{Tzanetakis2001}. Audio data is divided into analysis windows from which features are caluclated, including centroid, rolloff, flux, zero-crossings, and energy. Other features included the mel-frequency cepstral coefficients (MFCCs) and autocorrelations of processed signals. MFCCs have proven to be especially useful in speech recognition tasks. Using these feature sets, each genre is modelled as a multivariate Gaussian and new audio is classified using standard Gaussian classification. Though our ultimate goal is not genre classification, selecting meaningful features that represent the audio in a way that is compatible with the neural style transfer algorithm is an important step.
 
-The work done by Choi et al. also focusses on genre classification, but provides valuable insight into sound representation as well. The authors converted their audio clips into log-amplitude mel-spectrograms, stating that doing so outperforms standard MFCCs and linear-amplitude mel-spectrograms for genre classification tasks. They compared the performance of convolutional recurrent neural networks (CRNN) with three CNNs of varying structure in both memory-controlled and computation-controlled experiments.
+The work done by Choi et al. also focusses on genre classification, but provides valuable insight into sound representation as well \citep{Choi2016}. The authors converted their audio clips into log-amplitude mel-spectrograms, stating that doing so outperforms standard MFCCs and linear-amplitude mel-spectrograms for genre classification tasks. They compared the performance of convolutional recurrent neural networks (CRNN) with three CNNs of varying structure in both memory-controlled and computation-controlled experiments. According to their results, CRNNs outperform CNNs with 2D convolution kernels when limited to the same number of parameters, but computation using the 2D convolution kernels is faster.
 
 \section{Applying Artistic Style Transfer to Music Data}
 
 \subsection{Data}
 
-Discuss data set
+The dataset used in this paper is the Marsyas GTZAN genre collection. It consists of 1000 audio tracks with a length of 30 seconds each. The tracks are separated into 10 genres, each genre having 100 tracks. All of the tracks are recorded in 22050Hz Mono 16-bit audio. The data was originally collected and used by Tzanetakis et al. for genre classification, but has since been made publicly available \citep{Tzanetakis2002}.
 
 Describe pre-processing of sound data (ie. conversion to spectrogram/mfcc)
 
+
 \subsection{Methods}
 
-Describe application of method from Gatys et al. to new 2-D sound data.
+We implemented the same machine learning framework as the neural style transfer \cite{Gatys2015}. The network is based on the VGG-Network, a convolutional neural network intended to be used on 2D image data [VGG CITATION]. Features are acquired from the 15 convolutional layers and 5 pooling layers, while ignoring the fully connected layers. More information on the configuration of the network can be seen in \citep{Gatys2015}.
 
 \section{Experiments}
 
@@ -98,7 +123,7 @@ Discuss the results from original neural transfer loss function
 \begin{figure}[h]
   \centering
   \fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
-  \caption{Figure X images of analysis plots TO BE INCLUDED}
+  \caption{Images of analysis plots TO BE INCLUDED}
 \end{figure}
 
 Discuss the results from using autocorrelation loss function
@@ -106,7 +131,7 @@ Discuss the results from using autocorrelation loss function
 \begin{figure}[h]
   \centering
   \fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
-  \caption{Figure X images of analysis plots from autocorrelation TO BE INCLUDED}
+  \caption{Images of analysis plots from autocorrelation TO BE INCLUDED}
 \end{figure}
 
 Discuss results from constant Q loss function?
@@ -124,6 +149,10 @@ Did we get satisfactory results from our experiments?
 Potential problems associated with out method
 
 One existing challenge facing generative models is evaluation. It is easy to evaluate performance when categorizing art by style, or genre. Properly categorized test cases represent good performance, while misclassification is an example of poor performance. However, evaluation of performance becomes significantly more challenging when considering the output of generative models. Whether or not the result looks like art or sounds like music is typically subjective. As such, there exists a need to develop objective and quantitative performance measures for generative tasks.
+
+\bibliography{CPSC540_FinalReport}
+
+\end{document}
 
 END
 
@@ -390,5 +419,3 @@ T.K.\ Leen (eds.), {\it Advances in Neural Information Processing
 learning and recall at excitatory recurrent synapses and cholinergic
 modulation in rat hippocampal region CA3. {\it Journal of
   Neuroscience} {\bf 15}(7):5249-5262.
-
-\end{document}
