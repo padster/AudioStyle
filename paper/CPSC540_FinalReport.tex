@@ -78,9 +78,11 @@ The work done by Choi et al. also focusses on genre classification, but provides
 
 \textbf{Dataset.} \hspace{0.25cm} The dataset used in this paper is the Marsyas GTZAN genre collection. It consists of 1000 audio tracks with a length of 30 seconds each. The tracks are separated into 10 genres, each genre having 100 tracks. All of the tracks are recorded in 22050Hz Mono 16-bit audio. The data was originally collected and used by Tzanetakis et al. for genre classification, but has since been made publicly available \citep{Tzanetakis2002}. We trimmed the audio to 10 second clips and applied a bandpass filter as part of a preprocessing step. We chose 10 seconds because it reduces the size of the data for computation purposes, and is still long enough to possess enough characteristic features to be recognized for a particular genre.
 
+\textbf{Network Architecture.} \hspace{0.25cm} We implemented the same machine learning framework as the neural style transfer \cite{Gatys2015}. The network is based on the VGG-Network, a convolutional neural network intended to be used on 2D image data \citep{Simonyan2014}. Features are acquired from the 16 convolutional layers and 5 pooling layers, while ignoring the fully connected layers. More information on the configuration of the network can be seen in \citep{Gatys2015}.
+
 \textbf{2D Audio Representation.} \hspace{0.25cm} Spectrograms and MFCCs are two methods by which audio data can be represented as a two dimensional array. A spectrogram is a plot of the intensity of the short-time Fourier transform (STFT). Sound data is first sectioned into overlapping windows. The Fourier transform is applied to each window, and the results are output as a vertical line showing the intensity at different frequencies. The transform is applied to all of the windows, and the output vertical lines are arranged chronologically. This results in an intensity plot with the horizontal axis representing time, and the vertical axis representing frequency. MFCC plots are also short-term, spectral based features and can be interpreted as a spectrogram with additional processing. To obtain MFCC features, we take the logarithm of the amplitude from the spectorgram, map the results to the mel scale, and then perform a discrete cosine transform \citep{Logan2000}. The mel scale accounts for the difference between actual frequency and perceived pitch. Like the spectrogram, the resulting image plots frequency as a function of time. An example of the spectrogram and MFCCs for the same sound clip is shown in Figure 1.
 
-\begin{figure}[h]
+\begin{figure}[!h]
 \begin{subfigure}{\textwidth}
   \centering
   \includegraphics[width = \textwidth]{spec_example}
@@ -94,27 +96,7 @@ The work done by Choi et al. also focusses on genre classification, but provides
 \caption{a) Spectrogram transformation of reggae audio clip b) MFCC transformation of reggae audio clip}
 \end{figure}
 
-\textbf{Network Architecture.} \hspace{0.25cm} We implemented the same machine learning framework as the neural style transfer \cite{Gatys2015}. The network is based on the VGG-Network, a convolutional neural network intended to be used on 2D image data \citep{Simonyan2014}. Features are acquired from the 16 convolutional layers and 5 pooling layers, while ignoring the fully connected layers. More information on the configuration of the network can be seen in \citep{Gatys2015}.
-
-\section{Experiments}
-
-\subsection{Experimental Setup}
-
-\begin{figure}[h]
-\begin{subfigure}{\textwidth}
-  \centering
-  \includegraphics[width = \textwidth]{content_spec}
-  \caption{}
-\end{subfigure}
-\begin{subfigure}{\textwidth}
-  \centering
-  \includegraphics[width = \textwidth]{style_spec}
-  \caption{}
-\end{subfigure}
-\caption{Spectrograms of .wav files for the a) content clip b) style clip}
-\end{figure}
-
-The original Neural style transfer paper minimized the following loss functions, for generated image features $F$, content features $P$ and style features $A$:
+\textbf{Loss Function.} \hspace{0.25cm} The original Neural style transfer paper minimized the following loss functions, for generated image features $F$, content features $P$ and style features $A$:
 \begin{align*}
 \mathcal{L}_{content}(\text{layer } l) &= \frac{1}{2} \sum_{i, j} (F_{i, j}^{l} - P_{i, j}^{l})^2 \\
 \mathcal{L}_{style} &= \sum_l \frac{1}{4N_l^2M_l^2}\sum_{i,j}(G_{i,j}^l(F) - G_{i,j}^l(A))^2
@@ -141,6 +123,26 @@ For this paper, we ran with weights $\alpha = 1\times10^{-3}, \beta = 2\times10^
 
 Note that autocorrelation of a vector is equivalent to convolution with its own reversal, so easy to include within any system that runs convolutional neural networks.
 
+\section{Experiments}
+
+\subsection{Experimental Setup}
+
+\begin{figure}[h]
+\begin{subfigure}{\textwidth}
+  \centering
+  \includegraphics[width = \textwidth]{content_spec}
+  \caption{}
+\end{subfigure}
+\begin{subfigure}{\textwidth}
+  \centering
+  \includegraphics[width = \textwidth]{style_spec}
+  \caption{}
+\end{subfigure}
+\caption{Spectrograms of .wav files for the a) content clip b) style clip}
+\end{figure}
+
+
+
 Code implementing the transfer (and all other stages of processing) was written in python using the Lasagne and Theano libraries. It is available at \url{https://github.com/padster/AudioStyle}. Results were obtained running on AWS GPU instances, taking in the order of 10 minutes to complete a transfer. 
 
 \subsection{Results}
@@ -149,7 +151,7 @@ HERE: As part of our experiment did we perform style transfer on both spectrogra
 
 Discuss the results from original neural transfer loss function
 
-\begin{figure}[h]
+\begin{figure}[!h]
 \begin{subfigure}{\textwidth}
   \centering
   \includegraphics[width = \textwidth]{out1_spec}
@@ -175,7 +177,17 @@ Discuss the results from original neural transfer loss function
 
 Discuss the results from using autocorrelation loss function
 
-\begin{figure}[h]
+\begin{figure}[!h]
+\begin{subfigure}{\textwidth}
+  \centering
+  \includegraphics[width = \textwidth]{row_ac_mfcc_input}
+  \caption{}
+\end{subfigure}
+\begin{subfigure}{\textwidth}
+  \centering
+  \includegraphics[width = \textwidth]{col_ac_mfcc_input}
+  \caption{}
+\end{subfigure}
 \begin{subfigure}{\textwidth}
   \centering
   \includegraphics[width = \textwidth]{row_ac_input}
@@ -186,7 +198,7 @@ Discuss the results from using autocorrelation loss function
   \includegraphics[width = \textwidth]{col_ac_input}
   \caption{}
 \end{subfigure}
-\caption{Images of analysis plots from autocorrelation TO BE INCLUDED}
+\caption{Autocorrelation plots. Red, blue, and green lines represent the content, style, and output images respectively. a) Row autocorrelation for MFCC transformation. b) Column autocorrelation for MFCC transformation. c) Row autocorrelation for MFCC transformation with updated loss function. d) Column autocorrelation for MFCC transformation with updated loss function.}
 \end{figure}
 
 \section{Discussion and Conclusion}
