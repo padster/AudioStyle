@@ -2,8 +2,131 @@
 <html>
 <head>
   <title>CPSC 540 Audio Style Transfer</title>
+  <link rel="stylesheet"
+    href="https://unpkg.com/purecss@0.6.2/build/pure-min.css"
+    integrity="sha384-UQiGfs9ICog+LwheBSRCt1o5cbyKIHbwjWscjemyBMT9YCUMZffs6UqUTd0hObXD"
+    crossorigin="anonymous"
+  >
+  <style>
+  #container {
+    padding: 24px 48px;
+  }
+  #menu {
+    padding-bottom: 24px;
+  }
+  img, audio {
+    display: block;
+  }
+  </style>
 </head>
 <body>
-  To do - upload images and audio, show them here.
+<div id="container">
+  <div id="menu">
+    <button class="pure-button" onclick="showData('h')">Home</button>
+    <button class="pure-button" onclick="showData('s')">Spectrogram</button>
+    <button class="pure-button" onclick="showData('m')">Mel Cepstrum</button>
+    <button class="pure-button" onclick="showData('r')">Row Autocorrelation only</button>
+    <button class="pure-button" onclick="showData('rc')">Row and Column Autocorrelation</button>
+  </div>
+
+  <div id='t-h'>
+    TODO - add some notes, or the abstract here?
+  </div>
+
+  <!-- Spectrogram -->
+  <div id='t-s'>
+    Procedure:
+    <ol>
+      <li>Load 10s segments for the content and style audio</li>
+      <li>Convert audio to spectrograms</li>
+      <li>Apply style transfer algorithm to the spectrograms</li>
+      <li>Convert result spectrogram back to audio</li>
+    </ol>
+    Audio result:
+    <audio controls><source src="./spec/specOut.wav" type="audio/wav"/></audio> <br />
+    Spectrogram transfer:
+    <img src='./spec/specOut.png' />
+  </div>
+
+  <!-- Mel Cepstrum -->
+  <div id='t-m'>
+    Procedure:
+    <ol>
+      <li>Load 10s segments for the content and style audio</li>
+      <li>Convert audio to spectrograms</li>
+      <li>Convert spectrograms to mel cepstrum</li>
+      <li>Apply style transfer algorithm to the cepstrum</li>
+      <li>Convert result cepstrum back to spectrogram</li>
+      <li>Convert result spectrogram back to audio</li>
+    </ol>
+    Audio result:
+    <audio controls><source src="./mfcc/melOut.wav" type="audio/wav"/></audio> <br />
+    Mel Cepstrum trasfer:
+    <img src='./mfcc/melOut.png' />
+    Spectrogram transfer:
+    <img src='./mfcc/specOut.png' />
+  </div>
+
+  <!-- Row AC -->
+  <div id='t-r'>
+    Procedure:
+    <ol>
+      <li>Load 10s segments for the content and style audio</li>
+      <li>Convert audio to spectrograms</li>
+      <li>Convert spectrograms to mel cepstrum</li>
+      <li>Apply style transfer algorithm to the cepstrum</li>
+      <ul>
+        <li>Loss function includes row autocorrelations</li>
+      </ul>
+      <li>Convert result cepstrum back to spectrogram</li>
+      <li>Convert result spectrogram back to audio</li>
+    </ol>
+    Audio result:
+    <audio controls><source src="./rowAC25l0w1em9/melOut.wav" type="audio/wav"/></audio> <br />
+    Mel Cepstrum trasfer:
+    <img src='./rowAC25l0w1em9/melOut.png' />
+    Spectrogram transfer:
+    <img src='./rowAC25l0w1em9/specOut.png' />
+    Average row autocorrelation:
+    <img src='./rowAC25l0w1em9/row_ac.png' />
+  </div>
+
+  <!-- Col AC -->
+  <div id='t-rc'>
+    Procedure:
+    <ol>
+      <li>Load 10s segments for the content and style audio</li>
+      <li>Convert audio to spectrograms</li>
+      <li>Convert spectrograms to mel cepstrum</li>
+      <li>Apply style transfer algorithm to the cepstrum</li>
+      <ul>
+        <li>Loss function includes row and columne autocorrelations</li>
+      </ul>
+      <li>Convert result cepstrum back to spectrogram</li>
+      <li>Convert result spectrogram back to audio</li>
+    </ol>
+    Audio result:
+    <audio controls><source src="./raccac25l0w1em9/melOut.wav" type="audio/wav"/></audio> <br />
+    Mel Cepstrum trasfer:
+    <img src='./raccac25l0w1em9/melOut.png' />
+    Spectrogram transfer:
+    <img src='./raccac25l0w1em9/specOut.png' />
+    Average row autocorrelation:
+    <img src='./raccac25l0w1em9/row_ac.png' />
+    Average column autocorrelation:
+    <img src='./raccac25l0w1em9/col_ac.png' />
+  </div>
+</div>
+
+  <script>
+  var types = ['h', 's', 'm', 'r', 'rc'];
+  var showData = function(selected) {
+    for (var type of types) {
+      var dClass = (type == selected) ? 'block' : 'none';
+      document.getElementById('t-' + type).style.display = dClass;
+    }
+  }
+  showData('h');
+  </script>
 </body>
 </html>
