@@ -17,6 +17,10 @@
   img, audio {
     display: block;
   }
+  ul audio {
+    display: inline-block;
+    margin-bottom: -0.5em;
+  }
   </style>
 </head>
 <body>
@@ -30,7 +34,13 @@
   </div>
 
   <div id='t-h'>
-    TODO - add some notes, or the abstract here?
+    <br /> <br />
+    Result files for the Audio Style Transfer paper: TODO - link to pdf
+    All runs used the following inputs:
+    <ul>
+      <li><b>Content</b> audio taken from Marsyas rock track #17: <audio controls><source src="./rock17.wav" type="audio/wav"/></audio></li>
+      <li><b>Style </b> audio taken from Marsyas reggae track #7: <audio controls><source src="./reggae07.wav" type="audio/wav"/></audio></li>
+    </ul>
   </div>
 
   <!-- Spectrogram -->
