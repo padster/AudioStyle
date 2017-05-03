@@ -43,48 +43,6 @@
 \newcommand{\@nipsyear}{2016}
 \newcommand{\@nipslocation}{Barcelona, Spain}
 
-% handle tweaks for camera-ready copy vs. submission copy
-\if@nipsfinal
-  \newcommand{\@noticestring}{%
-    \@nipsordinal\/ Conference on Neural Information Processing Systems
-    (NIPS \@nipsyear), \@nipslocation.%
-  }
-\else
-  \newcommand{\@noticestring}{%
-    Submitted to \@nipsordinal\/ Conference on Neural Information
-    Processing Systems (NIPS \@nipsyear). Do not distribute.%
-  }
-
-  % line numbers for submission
-  \RequirePackage{lineno}
-  \linenumbers
-
-  % fix incompatibilities between lineno and amsmath, if required, by
-  % transparently wrapping linenomath environments around amsmath
-  % environments
-  \AtBeginDocument{%
-    \@ifpackageloaded{amsmath}{%
-      \newcommand*\patchAmsMathEnvironmentForLineno[1]{%
-        \expandafter\let\csname old#1\expandafter\endcsname\csname #1\endcsname
-        \expandafter\let\csname oldend#1\expandafter\endcsname\csname end#1\endcsname
-        \renewenvironment{#1}%
-          {\linenomath\csname old#1\endcsname}%
-          {\csname oldend#1\endcsname\endlinenomath}%
-      }%
-      \newcommand*\patchBothAmsMathEnvironmentsForLineno[1]{%
-        \patchAmsMathEnvironmentForLineno{#1}%
-        \patchAmsMathEnvironmentForLineno{#1*}%
-      }%
-      \patchBothAmsMathEnvironmentsForLineno{equation}%
-      \patchBothAmsMathEnvironmentsForLineno{align}%
-      \patchBothAmsMathEnvironmentsForLineno{flalign}%
-      \patchBothAmsMathEnvironmentsForLineno{alignat}%
-      \patchBothAmsMathEnvironmentsForLineno{gather}%
-      \patchBothAmsMathEnvironmentsForLineno{multline}%
-    }{}
-  }
-\fi
-
 % load natbib unless told otherwise
 \if@natbib
   \RequirePackage{natbib}
@@ -258,7 +216,6 @@
     \thispagestyle{empty}
     \@maketitle
     \@thanks
-    \@notice
   \endgroup
   \let\maketitle\relax
   \let\thanks\relax
@@ -308,16 +265,6 @@
     \fi
     \vskip 0.3in \@minus 0.1in
   }
-}
-
-% add conference notice to bottom of first page
-\newcommand{\ftype@noticebox}{8}
-\newcommand{\@notice}{%
-  % give a bit of extra room back to authors on first page
-  \enlargethispage{2\baselineskip}%
-  \@float{noticebox}[b]%
-    \footnotesize\@noticestring%
-  \end@float%
 }
 
 % abstract styling
