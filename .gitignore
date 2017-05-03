@@ -114,3 +114,7 @@ paper/CPSC540_FinalReport.pdf
 paper/CPSC540_FinalReport.aux
 paper/CPSC540_FinalReport.out
 paper/CPSC540_FinalReport.synctex.gz
+
+#BiBTeX files
+paper/CPSC540_FinalReport.bbl
+paper/CPSC540_FinalReport.blg
