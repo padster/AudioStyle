@@ -10,7 +10,9 @@ vgg19_normalized.pkl
 data/
 output/
 awsOutput/
-*.wav
+/*.wav
+
+!docs/*.wav
 
 
 # Byte-compiled / optimized / DLL files
