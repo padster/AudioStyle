@@ -21,6 +21,7 @@
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
 \usepackage{subcaption}
+\usepackage{amsmath}
 
 % Figures
 \usepackage{graphicx}
@@ -117,11 +118,34 @@ We implemented the same machine learning framework as the neural style transfer 
 \caption{Spectrograms of .wav files for the a) content clip b) style clip}
 \end{figure}
 
-Discuss different loss functions
+The original Neural style transfer paper minimized the following loss functions, for generated image features $F$, content features $P$ and style features $A$:
+\begin{align*}
+\mathcal{L}_{content}(\text{layer } l) &= \frac{1}{2} \sum_{i, j} (F_{i, j}^{l} - P_{i, j}^{l})^2 \\
+\mathcal{L}_{style} &= \sum_l \frac{1}{4N_l^2M_l^2}\sum_{i,j}(G_{i,j}^l(F) - G_{i,j}^l(A))^2
+\end{align*}
+where we denote the Gram matrix for layer $l$ by $G_{i,j}^l(X) = \sum_k X_{i,k}^l X_{j,k}^l$. 
 
-Include equations for loss functions
+In this paper, we introduce two new loss functions to minimize, that try to capture information properties more useful in the audio domain - specifically, beat and harmonic frequencies. In the context of a spectrogram, the beat pattern can be thought of as how well the signal power correlates with a delayed version of itself.  The music should have a much stronger correlation when delayed the length of a beat, compareed to a delay of a shorter length. This is captured by the row-wise autocorrelation for each frequency across time. Similarly, the power strength within a column of the spectrogram captures the harmonics present in the instruments of a song. By matching column autocorrelation, resulting audio should have similar harmonic structure to that of what it is matching.
 
-Discuss computational architecture used to run experiments
+Mathematically we can define these two properties by the row- and column-wise autocorrelations within the feature matrices. Given image features $F$ as above, we can define to more loss functions by matching its row- and column-wise autocorrelations to the style image:
+\begin{align*}
+\mathcal{L}_{row^\star} &= \frac{1}{MN} (R^\star(F) - R^\star(A))^2 \\
+R^\star(A)_{:,j} &= A_{i,:} \star A_{i,:} \text{ the row autocorrelation, i.e.} \\
+R^\star(A)_{i,j} &= \sum_k a_{i,k}a_{i,k-j} \\
+\mathcal{L}_{column^\star} &= \frac{1}{MN} (C^\star(F) - C^\star(A))^2 \\
+C^\star(A)_{:,j} &= A_{:,j} \star A_{:,j} \text{ the column autocorrelation, i.e.} \\
+C^\star(A)_{i,j} &= \sum_k a_{k,j}a_{k-i,j} \\
+\end{align*}
+
+The final loss function was then a weighted sum of all four components:
+$$
+\mathcal{L}_{total} = \alpha \mathcal{L}_{content} + \beta \mathcal{L}_{style} + w_{row} \mathcal{L}_{row^\star} + w_{col} \mathcal{L}_{column^\star}
+$$
+For this paper, we ran with weights $\alpha = 1\times10^{-3}, \beta = 2\times10^{5}, w_{col} = w_{row} = 1\times10^{-9}$
+
+Note that autocorrelation of a vector is equivalent to convolution with its own reversal, so easy to include within any system that runs convolutional neural networks.
+
+Code implementing the transfer (and all other stages of processing) was written in python using the Lasagne and Theano libraries. It is available at \url{https://github.com/padster/AudioStyle}. Results were obtained running on AWS GPU instances, taking in the order of 10 minutes to complete a transfer. 
 
 \subsection{Results}
 
