@@ -75,12 +75,18 @@ def activationRowAC(title, layerMap, tfImg):
         result[layer] = np.mean(corrs, axis=0)
     return result
 
-def showRowAutocorrlations(vgg, sContent, sStyle, sResult, tfContent, tfStyle, tfResult):
+def showRowAutocorrlations(vgg, sContent, sStyle, sResult, tfContent, tfStyle, tfResult, transposed=False):
     layers = ['conv1_1', 'conv2_1', 'conv3_1', 'conv4_1', 'conv5_1']
     layerMap = {layer: vgg[layer] for layer in layers}
-    contentMap = activationRowAC('Content', layerMap, tfContent)
-    styleMap   = activationRowAC('Style'  , layerMap, tfStyle)
-    resultMap  = activationRowAC('Result' , layerMap, tfResult)
+
+    if transposed:
+        contentMap = activationColAC('Content', layerMap, tfContent)
+        styleMap   = activationColAC('Style'  , layerMap, tfStyle)
+        resultMap  = activationColAC('Result' , layerMap, tfResult)
+    else:
+        contentMap = activationRowAC('Content', layerMap, tfContent)
+        styleMap   = activationRowAC('Style'  , layerMap, tfStyle)
+        resultMap  = activationRowAC('Result' , layerMap, tfResult)
 
     SPEC = 'input'
     layers.insert(0, SPEC)
@@ -125,12 +131,18 @@ def activationColAC(title, layerMap, tfImg):
         result[layer] = np.mean(corrs, axis=0)
     return result
 
-def showColAutocorrlations(vgg, sContent, sStyle, sResult, tfContent, tfStyle, tfResult):
+def showColAutocorrlations(vgg, sContent, sStyle, sResult, tfContent, tfStyle, tfResult, transposed=False):
     layers = ['conv1_1', 'conv2_1', 'conv3_1', 'conv4_1', 'conv5_1']
     layerMap = {layer: vgg[layer] for layer in layers}
-    contentMap = activationColAC('Content', layerMap, tfContent)
-    styleMap   = activationColAC('Style'  , layerMap, tfStyle)
-    resultMap  = activationColAC('Result' , layerMap, tfResult)
+
+    if transposed:
+        contentMap = activationRowAC('Content', layerMap, tfContent)
+        styleMap   = activationRowAC('Style'  , layerMap, tfStyle)
+        resultMap  = activationRowAC('Result' , layerMap, tfResult)
+    else:
+        contentMap = activationColAC('Content', layerMap, tfContent)
+        styleMap   = activationColAC('Style'  , layerMap, tfStyle)
+        resultMap  = activationColAC('Result' , layerMap, tfResult)
 
     SPEC = 'input'
     layers.insert(0, SPEC)
