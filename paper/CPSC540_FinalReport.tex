@@ -109,10 +109,10 @@ In this paper, we introduce two new loss functions to minimize that try to captu
 
 Mathematically we can define these two properties by the row- and column-wise autocorrelations within the feature matrices. Given image features $F$ as above, we can define to more loss functions by matching its row- and column-wise autocorrelations to the style image:
 \begin{align*}
-\mathcal{L}_{row^\star}(\text{layer } l) &= \frac{1}{MN} (R^\star(F^l) - R^\star(A^l))^2 \\
+\mathcal{L}_{row^\star}(\text{layer } l) &= \frac{1}{M_lN_l} (R^\star(F^l) - R^\star(A^l))^2 \\
 R^\star(A^l)_{:,j} &= A_{i,:}^l \star A_{i,:}^l \text{ the row autocorrelation, i.e.} \\
 R^\star(A^l)_{i,j} &= \sum_k a_{i,k}^la_{i,k-j}^l \\
-\mathcal{L}_{column^\star}(\text{layer } l) &= \frac{1}{MN} (C^\star(F^l) - C^\star(A^l))^2 \\
+\mathcal{L}_{column^\star}(\text{layer } l) &= \frac{1}{M_lN_l} (C^\star(F^l) - C^\star(A^l))^2 \\
 C^\star(A^l)_{:,j} &= A_{:,j}^l \star A_{:,j}^l \text{ the column autocorrelation, i.e.} \\
 C^\star(A^l)_{i,j} &= \sum_k a_{k,j}^la_{k-i,j}^l \\
 \end{align*}
@@ -131,7 +131,7 @@ Note that autocorrelation of a vector is equivalent to convolution with its own 
 
 To test the algorithm we selected one content audio clip and one style audioclip from the Marsyas GTZAN genre collection database. We chose content and style from two distinct genres to exaggerate any differences. For the results shown below, the content audio is from a song classified in the rock genre, while the style audio is from a song classified in the reggae genre. Spectrograms for the two audio clips are shown in Figure 2.
 
-\begin{figure}[h]
+\begin{figure}[!ht]
 \begin{subfigure}{\textwidth}
   \centering
   \includegraphics[width = \textwidth]{content_spec}
@@ -147,7 +147,7 @@ To test the algorithm we selected one content audio clip and one style audioclip
 
 Once our audio data is converted into a 2D form that is compatible with the neural style transfer code, the style transfer is applied. Gradient descent is performed on a white noise image with a goal of matching the feature responses as defined by our loss function. We implemented a different number of iterations for the two different formats that we used as inputs. For spectrograms gradient descent was performed for 25 iterations, while for MFCCs 40 iterations were performed. This is because spectrograms have a higher resolution and require more time per iteration.
 
-Code implementing the transfer (and all other stages of processing) was written in Python using the Lasagne and Theano libraries. It is available at \url{https://github.com/padster/AudioStyle}. Results were obtained running on AWS GPU instances (ANY OTHER INFO ON GPU? IE. HARWARE SPECS), taking approximately 10 minutes to complete a transfer. 
+Code implementing the transfer (and all other stages of processing) was written in Python using the Lasagne and Theano libraries. It is available at \url{https://github.com/padster/AudioStyle}. Results were obtained running on an AWS GPU instance (at the time of writing: one p2.2xlarge, with a single NVIDIA K80 GPU), taking approximately 10 minutes to complete a transfer. 
 
 \subsection{Results: Spectrogram}
 
@@ -213,9 +213,9 @@ This is fixed by introducing the column autocorrelation loss (d). It can be seen
 
 We can also verify that the autocorrelation losses are introducing the desired constraints on the generated spectrograms. For each row or column, we calculate the full autocorrelation, so it is twice the length, symmetric, and roughly linear. For presentation purposes, we first take the first-order pairwise difference to approximate the derivative, and average this out over all rows (or columns).
 
-Figures (a) and (c) show the average row autocorrelation derivatives, with and without the loss function applied. The beat of the content (rock, red line) and style (reggae, blue line) can clearly be seen in this graph. It is also possible to verify that, after the loss was added, the periodicity in the result (green line) is close to that of the style input, although with smaller amplitiude. Similar periodicity can be shown for the activations for deeper layers of the network, although the loss function was not included for these layers as calculation of the gradient becaue too slow. Full images are available on the website with the audio.
+Figures 4a and 4c show the average row autocorrelation derivatives, with and without the loss function applied. The beat of the content (rock, red line) and style (reggae, blue line) can clearly be seen in this graph. It is also possible to verify that, after the loss was added, the periodicity in the result (green line) is close to that of the style input, although with smaller amplitiude. Similar periodicity can be shown for the activations for deeper layers of the network, although the loss function was not included for these layers as calculation of the gradient becaue too slow. Full images are available on the website with the audio.
 
-Figures (b) and (d) show similar for the average column autocorrelation derivates. These are much shorter, and much flatter due to the nature of the audio patterns. It can be seen that the generated image matches the style image very closely once the column autocorrelation loss is included. It is also believed that using a different spectrogram would improve the information captured in the loss. Due to the nature of harmonic frequencies, a spectrogram with logarithmic frequency space (y-axis) like constant-Q would be ideal.
+Figures 4b and 4d show similar for the average column autocorrelation derivates. These are much shorter, and much flatter due to the nature of the audio patterns. It can be seen that the generated image matches the style image very closely once the column autocorrelation loss is included. It is also believed that using a different spectrogram would improve the information captured in the loss. Due to the nature of harmonic frequencies, a spectrogram with logarithmic frequency space (y-axis) like constant-Q would be ideal.
 
 \section{Discussion and Conclusion}
 
