@@ -14,7 +14,7 @@ To test yourself:
   python run.py <flags>
 
 Where the available flags are:
-  --cpu (whether to run theano on the CPU, default is GPU)
-  --spec (whether to transfer the spectrogram, default is MFCC)
-  --rowac (whether to include loss for row autocorrelation)
-  --colac (whether to include loss for column autocorrelation)
+  * --cpu (whether to run theano on the CPU, default is GPU)
+  * --spec (whether to transfer the spectrogram, default is MFCC)
+  * --rowac (whether to include loss for row autocorrelation)
+  * --colac (whether to include loss for column autocorrelation)
