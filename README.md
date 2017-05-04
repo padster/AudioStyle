@@ -1,18 +1,20 @@
 # AudioStyle
-UBC 540 Project: Style transfer for Audio
+UBC CPSC 540 Project: Style transfer for Audio
 
-Install Lasagne & everything needed
-(http://lasagne.readthedocs.io/en/latest/user/installation.html)
+For details, see the paper in this repository:
+  https://github.com/padster/AudioStyle/blob/master/paper/CPSC540_FinalReport.pdf
 
-pip install numpy
-pip install scipy
-pip install --upgrade https://github.com/Theano/Theano/archive/master.zip
-pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
+Code uses the following implementation of the Neural Style algorithm, in Lasagne/Theano:
+  https://github.com/Lasagne/Recipes/blob/master/examples/styletransfer/Art%20Style%20Transfer.ipynb
 
-pip install audioread
+Audio processing logic (spectrogram & mfcc) used from:
+  https://timsainb.github.io/spectrograms-mfccs-and-inversion-in-python.html
 
-Or read this: http://deeplearning.net/software/theano/install.html
+To test yourself:
+  python run.py <flags>
 
-If using BLAS for multithreading:
-1) sudo apt-get install libatlas-base-dev
-2) OMP_NUM_THREADS=6 python run.py
+Where the available flags are:
+  --cpu (whether to run theano on the CPU, default is GPU)
+  --spec (whether to transfer the spectrogram, default is MFCC)
+  --rowac (whether to include loss for row autocorrelation)
+  --colac (whether to include loss for column autocorrelation)
