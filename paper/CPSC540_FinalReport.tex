@@ -63,7 +63,7 @@ Recent work done by Gatys et al. \citep{Gatys2015} demonstrates that for 2D imag
 
 The loss function implemented by Gatys et al. is a combination of squared-error loss between the feature representations of the output image and the content image, and mean-squared distance between the values of the Gram matrices of the output image and style image \citep{Gatys2015}. To take advantage of the inherent structure that exists within spectrograms and MFCCs, we adjusted the loss functions for the CNNs used to train on the style and content images. We implemented a new loss function based on autocorrelations between horizontal and vertical pixels in an attempt to represent timing and harmonic patterns that exist in the audio data.
 
-In section 3 we describe a method for converting audio data into a form that is compatible with the existing neural style transfer algorithm. We also propose a new loss function capable of yielding better output spectrograms. In section 4 we quantitatively compare the performance of the neural style transfer on audio data for different preprocessing steps and loss functions. In section 5 we discuss possible directions of future research.
+The main goal of our paper is to explore the feasibility of performing style transfer on audio data. In section 3 we describe a method for converting audio data into a form that is compatible with the existing neural style transfer algorithm. We also propose a new loss function capable of yielding better output spectrograms. In section 4 we compare the performance of the style transfer on audio data for different preprocessing steps and loss functions. In section 5 we discuss possible directions of future research.
 
 
 \section{Related Work}
