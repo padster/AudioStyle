@@ -207,11 +207,15 @@ Discuss the results from using autocorrelation loss function
 
 \section{Discussion and Conclusion}
 
-Did we get satisfactory results from our experiments?
+Our experiments suggest that using MFCCs and adding loss terms for row and column autocorrelation improves performance over simply using spectrograms. Not only does the resulting audio sound more like music with each addition, but it becomes less noisy and better captures the desired style content. However, overall performance still leaves something to be desired.
 
-Potential problems associated with out method
+In the resulting audio file, the content seems to be somewhat preserved, though highly noisy. Only a few elements of the desired style have been successfully transferred, most notably the heavy beats of the reggae composition. The end result sounds only somewhat like music. Furthermore, the following processes and their respective inverses all contribute to audio quality losses: applying the FFT, applying the MFCC and applying the image style transfer. So, the resulting audio file has somewhat lower quality than would be desirable.
 
-One existing challenge facing generative models is evaluation. It is easy to evaluate performance when categorizing art by style, or genre. Properly categorized test cases represent good performance, while misclassification is an example of poor performance. However, evaluation of performance becomes significantly more challenging when considering the output of generative models. Whether or not the result looks like art or sounds like music is typically subjective. As such, there exists a need to develop objective and quantitative performance measures for generative tasks.
+Another potential issue is that the VGG we used was trained on general images, rather than spectrograms, MFCCs or greyscale images, which would be more domain appropriate. One possible direction of future research would be to try training a new VGG using a more restricted image domain. We could also try representing the audio as a chromagram rather than a spectrogram, to capture the notes of the scale more explicitly. Although our results transfer the style of one MFCC fairly well, this evidently does not directly translate to a transfer of audio style.
+
+Other future research directions could include trying simpler audio files first, for example instrumental compositions. We could also try adjusting the weights of each part of our loss function, or running our algorithm for more iterations.
+
+Another broad challenge facing generative models such as our own is evaluation. It is easy to evaluate performance when categorizing art by style, or genre. Properly categorized test cases represent good performance, while misclassification is an example of poor performance. However, evaluation of performance becomes significantly more challenging when considering the output of generative models. Whether or not the result looks like art or sounds like music is typically subjective. As such, there exists a need to develop objective and quantitative performance measures for generative tasks.
 
 \bibliography{CPSC540_FinalReport}
 
