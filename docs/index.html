@@ -34,13 +34,22 @@
   </div>
 
   <div id='t-h'>
-    <br /> <br />
-    Result files for the Audio Style Transfer paper: TODO - link to pdf
+    Result files for the Audio Style Transfer paper, applying the algorithm from
+    <a href="https://arxiv.org/abs/1508.06576">A Neural Algorithm of Artistic Style</a>
+    by Gatys et al. to spectrum images of audio. <br /> <br />
+    Runs were performed for:
+    <ol>
+      <li>Applying to spectrogram with no modifications.</li>
+      <li>Applying to the Mel spectrogram.</li>
+      <li>Same as #2, but with additional loss for row-wise autocorrelation mismatch to style.</li>
+      <li>Same as #3, but with additional loss for column-wise autocorrelation mismatch to style.</li>
+    </ol>
     All runs used the following inputs:
     <ul>
       <li><b>Content</b> audio taken from Marsyas rock track #17: <audio controls><source src="./rock17.wav" type="audio/wav"/></audio></li>
       <li><b>Style </b> audio taken from Marsyas reggae track #7: <audio controls><source src="./reggae07.wav" type="audio/wav"/></audio></li>
     </ul>
+    Code available on <a href="https://github.com/padster/AudioStyle">github</a>.
   </div>
 
   <!-- Spectrogram -->
@@ -118,7 +127,7 @@
       <li>Convert spectrograms to mel cepstrum</li>
       <li>Apply style transfer algorithm to the cepstrum</li>
       <ul>
-        <li>Loss function includes row and columne autocorrelations</li>
+        <li>Loss function includes row and column autocorrelations</li>
       </ul>
       <li>Convert result cepstrum back to spectrogram</li>
       <li>Convert result spectrogram back to audio</li>
