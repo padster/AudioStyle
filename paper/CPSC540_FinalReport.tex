@@ -98,10 +98,10 @@ The work done by Choi et al. also focusses on genre classification, but provides
 \caption{a) Spectrogram transformation of reggae audio clip b) MFCC transformation of reggae audio clip}
 \end{figure}
 
-\textbf{Loss Function.} \hspace{0.25cm} The original Neural style transfer paper minimized the following loss functions, for generated image features $F$, content features $P$ and style features $A$:
+\textbf{Loss Function.} \hspace{0.25cm} The original Neural style transfer paper minimized two loss functions, one for content match and one for style match. For generated image features $F$, content features $P$ and style features $A$, these functions were defined as:
 \begin{align*}
 \mathcal{L}_{content}(\text{layer } l) &= \frac{1}{2} \sum_{i, j} (F_{i, j}^{l} - P_{i, j}^{l})^2 \\
-\mathcal{L}_{style} &= \sum_l \frac{1}{4N_l^2M_l^2}\sum_{i,j}(G_{i,j}^l(F) - G_{i,j}^l(A))^2
+\mathcal{L}_{style}(\text{layer } l) &= \sum_l \frac{1}{4N_l^2M_l^2}\sum_{i,j}(G_{i,j}^l(F) - G_{i,j}^l(A))^2
 \end{align*}
 where we denote the Gram matrix for layer $l$ by $G_{i,j}^l(X) = \sum_k X_{i,k}^l X_{j,k}^l$. 
 
@@ -109,19 +109,19 @@ In this paper, we introduce two new loss functions to minimize that try to captu
 
 Mathematically we can define these two properties by the row- and column-wise autocorrelations within the feature matrices. Given image features $F$ as above, we can define to more loss functions by matching its row- and column-wise autocorrelations to the style image:
 \begin{align*}
-\mathcal{L}_{row^\star} &= \frac{1}{MN} (R^\star(F) - R^\star(A))^2 \\
-R^\star(A)_{:,j} &= A_{i,:} \star A_{i,:} \text{ the row autocorrelation, i.e.} \\
-R^\star(A)_{i,j} &= \sum_k a_{i,k}a_{i,k-j} \\
-\mathcal{L}_{column^\star} &= \frac{1}{MN} (C^\star(F) - C^\star(A))^2 \\
-C^\star(A)_{:,j} &= A_{:,j} \star A_{:,j} \text{ the column autocorrelation, i.e.} \\
-C^\star(A)_{i,j} &= \sum_k a_{k,j}a_{k-i,j} \\
+\mathcal{L}_{row^\star}(\text{layer } l) &= \frac{1}{MN} (R^\star(F^l) - R^\star(A^l))^2 \\
+R^\star(A^l)_{:,j} &= A_{i,:}^l \star A_{i,:}^l \text{ the row autocorrelation, i.e.} \\
+R^\star(A^l)_{i,j} &= \sum_k a_{i,k}^la_{i,k-j}^l \\
+\mathcal{L}_{column^\star}(\text{layer } l) &= \frac{1}{MN} (C^\star(F^l) - C^\star(A^l))^2 \\
+C^\star(A^l)_{:,j} &= A_{:,j}^l \star A_{:,j}^l \text{ the column autocorrelation, i.e.} \\
+C^\star(A^l)_{i,j} &= \sum_k a_{k,j}^la_{k-i,j}^l \\
 \end{align*}
 
 The final loss function was then a weighted sum of all four components:
 $$
 \mathcal{L}_{total} = \alpha \mathcal{L}_{content} + \beta \mathcal{L}_{style} + w_{row} \mathcal{L}_{row^\star} + w_{col} \mathcal{L}_{column^\star}
 $$
-For this paper, we ran with weights $\alpha = 1\times10^{-3}, \beta = 2\times10^{5}, w_{col} = w_{row} = 1\times10^{-9}$
+For this paper, we ran with weights $\alpha = 1\times10^{-3}, \beta = 2\times10^{5}, w_{col} = w_{row} = 1\times10^{-9}$. Additionally, while the content and style layers were the original ones taken from activations within the VGG network, the autocorrelation loss were defined over the input layer, to optimize calculation efficiency.
 
 Note that autocorrelation of a vector is equivalent to convolution with its own reversal, so easy to include within any system that runs convolutional neural networks.
 
@@ -149,11 +149,9 @@ Once our audio data is converted into a 2D form that is compatible with the neur
 
 Code implementing the transfer (and all other stages of processing) was written in Python using the Lasagne and Theano libraries. It is available at \url{https://github.com/padster/AudioStyle}. Results were obtained running on AWS GPU instances (ANY OTHER INFO ON GPU? IE. HARWARE SPECS), taking approximately 10 minutes to complete a transfer. 
 
-\subsection{Results}
+\subsection{Results: Spectrogram}
 
-HERE: As part of our experiment did we perform style transfer on both spectrograms and MFCCs? Quantitatively describe difference between the two. (Include justification of our selection if we only implemented one).
-
-Discuss the results from original neural transfer loss function
+As the results are audio-based, and there is no objective measure by which to grade the generated audio, the results were primarily judged by subjective opinion, as in the original transfer paper. Audio results can all be heard at \url{https://padster.github.io/AudioStyle/index.html}. Here we will primarily discuss the output spectrograms.
 
 \begin{figure}[!h]
 \begin{subfigure}{\textwidth}
@@ -179,7 +177,15 @@ Discuss the results from original neural transfer loss function
 \caption{Output spectrograms after style transfer using a) original loss function b) MFCC transform with original loss function c) MFCC transform with row autocorrelation added to loss function d) MFCC transform with row and column autocorrelation added to loss function}
 \end{figure}
 
-Discuss the results from using autocorrelation loss function
+As can be seen in Figure 3, the image transfer algorithm applied to spectrograms (a) performed poorly. This is primarily due to the much larger image (1024 x 1712 after downsampling) reducing the number of optimization iterations. The result looks slightly like a spectrogram, but has none of the structure one would expect. This can be heard in the audio, which sounds the least musical of all four.
+
+When applied the the MFCC version (b), the resulting normal spectrogram appears much more like normal audio, and does appear to visually mimic more the style of the reggae spectrogram. However, due to the lack of positional contraints, there is no solid beat, and often high or low frequencies appear in isolation. Due to the smaller image size (96 x 854), many more iterations of the style transfer algorithm are possible too.
+
+After the row-based autocorrelation loss was included (c), the result has a bit more of a beat, however artifacts can be seen where particular rows (i.e. frequencies) as a whole optimized to higher values, which is possible under autocorrelation. This results in a painful buzzing, which is not ideal. 
+
+This is fixed by introducing the column autocorrelation loss (d). It can be seen that this results in a spectrogram quite similar in style to that of the reggae song, while maintaining some of the same bright areas of the content. Unfortunately it still does not sound musical when converted back into an audio file, but it does sound the most musical of the four.
+
+\subsection{Results: Autocorrelations}
 
 \begin{figure}[!h]
 \begin{subfigure}{\textwidth}
@@ -205,17 +211,23 @@ Discuss the results from using autocorrelation loss function
 \caption{Autocorrelation plots. Red, blue, and green lines represent the content, style, and output images respectively. a) Row autocorrelation for MFCC transformation. b) Column autocorrelation for MFCC transformation. c) Row autocorrelation for MFCC transformation with updated loss function. d) Column autocorrelation for MFCC transformation with updated loss function.}
 \end{figure}
 
+We can also verify that the autocorrelation losses are introducing the desired constraints on the generated spectrograms. For each row or column, we calculate the full autocorrelation, so it is twice the length, symmetric, and roughly linear. For presentation purposes, we first take the first-order pairwise difference to approximate the derivative, and average this out over all rows (or columns).
+
+Figures (a) and (c) show the average row autocorrelation derivatives, with and without the loss function applied. The beat of the content (rock, red line) and style (reggae, blue line) can clearly be seen in this graph. It is also possible to verify that, after the loss was added, the periodicity in the result (green line) is close to that of the style input, although with smaller amplitiude. Similar periodicity can be shown for the activations for deeper layers of the network, although the loss function was not included for these layers as calculation of the gradient becaue too slow. Full images are available on the website with the audio.
+
+Figures (b) and (d) show similar for the average column autocorrelation derivates. These are much shorter, and much flatter due to the nature of the audio patterns. It can be seen that the generated image matches the style image very closely once the column autocorrelation loss is included. It is also believed that using a different spectrogram would improve the information captured in the loss. Due to the nature of harmonic frequencies, a spectrogram with logarithmic frequency space (y-axis) like constant-Q would be ideal.
+
 \section{Discussion and Conclusion}
 
 Our experiments suggest that using MFCCs and adding loss terms for row and column autocorrelation improves performance over simply using spectrograms. Not only does the resulting audio sound more like music with each addition, but it becomes less noisy and better captures the desired style content. However, overall performance still leaves something to be desired.
 
-In the resulting audio file, the content seems to be somewhat preserved, though highly noisy. Only a few elements of the desired style have been successfully transferred, most notably the heavy beats of the reggae composition. The end result sounds only somewhat like music. Furthermore, the following processes and their respective inverses all contribute to audio quality losses: applying the FFT, applying the MFCC and applying the image style transfer. So, the resulting audio file has somewhat lower quality than would be desirable.
+In the resulting audio file, the content seems to be somewhat preserved, though highly noisy. Only a few elements of the desired style have been successfully transferred, most notably the heavy beats of the reggae composition. The end result sounds only somewhat like music, and loses all lyric qualities. Furthermore, the following processes and their respective inverses all contribute to audio quality losses: applying the FFT, applying the MFCC and applying the image style transfer. So, the resulting audio file has somewhat lower quality than would be desirable.
 
 Another potential issue is that the VGG we used was trained on general images, rather than spectrograms, MFCCs or greyscale images, which would be more domain appropriate. One possible direction of future research would be to try training a new VGG using a more restricted image domain. We could also try representing the audio as a chromagram rather than a spectrogram, to capture the notes of the scale more explicitly. Although our results transfer the style of one MFCC fairly well, this evidently does not directly translate to a transfer of audio style.
 
-Other future research directions could include trying simpler audio files first, for example instrumental compositions. We could also try adjusting the weights of each part of our loss function, or running our algorithm for more iterations.
+Other future research directions could include trying simpler audio files first, for example instrumental compositions. We could also try adjusting the weights of each part of our loss function, or running our algorithm for more iterations. It would even be possible to decide which input (content or style) to match to each of the autocorrelation loss functions.  For example, it would be possible to aim to match the beat of the content (row loss), while transferring the instruments from the style song (column loss).
 
-Another broad challenge facing generative models such as our own is evaluation. It is easy to evaluate performance when categorizing art by style, or genre. Properly categorized test cases represent good performance, while misclassification is an example of poor performance. However, evaluation of performance becomes significantly more challenging when considering the output of generative models. Whether or not the result looks like art or sounds like music is typically subjective. As such, there exists a need to develop objective and quantitative performance measures for generative tasks.
+Another broad challenge facing generative models such as our own is evaluation. It is easy to evaluate performance when categorizing art by style, or genre. Properly categorized test cases represent good performance, while misclassification is an example of poor performance. However, evaluation of performance becomes significantly more challenging when considering the output of generative models. Whether or not the result looks like art or sounds like music is typically subjective. As such, there exists a need to develop objective and quantitative performance measures for generative tasks. This becomes even more difficult in the audio domain, as humans can quickly subjectively judge the quality of multiple generated images in a grid in seconds, but can only judge audio one track at a time.
 
 \bibliography{CPSC540_FinalReport}
 
