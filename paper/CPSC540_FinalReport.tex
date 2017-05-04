@@ -140,7 +140,7 @@ To test the algorithm we selected one content audio clip and one style audio cli
   \includegraphics[width = \textwidth]{style_spec}
   \caption{}
 \end{subfigure}
-\caption{Spectrograms of the input audio files. (a) Rock genre content clip. (b) Reggae genre style clip.}
+\caption{Spectrograms of the input audio files. (a) Rock genre content clip \#17. (b) Reggae genre style clip \#7.}
 \end{figure}
 
 Once our audio data is converted into a 2D form that is compatible with the neural style transfer code, the style transfer is applied. Gradient descent is performed on a white noise image with a goal of matching the feature responses as defined by our loss function. We implemented a different number of iterations for the two different formats that we used as inputs. For spectrograms gradient descent was performed for 25 iterations. For MFCCs 40 iterations were performed. This is because spectrograms have a higher resolution and require more time per iteration.
